@@ -173,7 +173,8 @@ const rows = computed(() => Math.min(14, Math.max(3, chatEdit.draft.split('\n').
       <div class="lc-msg__body">
         <div v-if="!continued" class="lc-msg__meta">
           <span class="lc-msg__name">{{ source.nickname }}</span>
-          <span v-if="source.IMUserId" class="lc-msg__id">({{ source.IMUserId }})</span>
+          <!-- 账号跟着「平台帐号隐藏」选项走。 -->
+          <span v-if="source.IMUserId && !store.exportOptions.userIdHide" class="lc-msg__id">({{ source.IMUserId }})</span>
           <span v-if="role === '主持人'" class="lc-msg__badge">主持人</span>
           <span v-if="time" class="lc-msg__time">{{ time }}</span>
         </div>
