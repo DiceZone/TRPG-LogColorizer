@@ -359,7 +359,7 @@ button {
 }
 
 .lc-notice-env.is-open {
-  opacity: 0.55;
+  opacity: 0;
 }
 
 .lc-notice-env svg {
@@ -417,15 +417,25 @@ button {
   backdrop-filter: blur(2px);
 }
 
-/* 信纸：带一点信封的米色。外层只负责在透视空间里飞，纸面本身在 __paper。 */
+/* 信纸：带一点信封的米色。 */
 .lc-notice__sheet {
   position: relative;
+  z-index: 2;
   width: min(40rem, 100%);
   transform-origin: 50% 50%;
-  transform-style: preserve-3d;
 }
 
+/* 信纸永远是浅色的纸、深色的字（深色模式也一样），里面的 Markdown 跟着用纸上的配色。 */
 .lc-notice__paper {
+  --lc-text: #2d2a26;
+  --lc-text-muted: #6b6457;
+  --lc-text-faint: #8d8473;
+  --lc-border: #e3d7bd;
+  --lc-border-strong: #d2c3a1;
+  --lc-surface: var(--lc-notice-sheet, #fffaf0);
+  --lc-surface-sunken: #eee4cf;
+  --lc-primary: #4f46e5;
+  color: var(--lc-text);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -436,44 +446,96 @@ button {
   box-shadow: var(--lc-shadow-raised), 0 0 40px rgba(255, 196, 110, 0.18);
 }
 
-/* 三折信纸的两道折痕，展开后淡去。 */
-.lc-notice__creases {
+/* 打开与收起时屏幕中间的大信封（只在动画里出现）。 */
+.lc-notice__envelope {
   position: absolute;
+  z-index: 1;
   inset: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(to bottom,
-      transparent calc(33.34% - 10px), rgba(120, 90, 40, 0.16) 33.34%, transparent calc(33.34% + 10px),
-      transparent calc(66.66% - 10px), rgba(120, 90, 40, 0.16) 66.66%, transparent calc(66.66% + 10px));
-  opacity: 0;
+  width: min(22rem, 72vw);
+  height: calc(min(22rem, 72vw) * 0.62);
+  margin: auto;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.25));
   pointer-events: none;
 }
 
-/* 叠在中间那一折上的上下两折：信纸背面，平时看不见，只在动画里出现。 */
-.lc-notice__flap {
+.lc-notice__envelope > * {
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 33.34%;
-  border: 1px solid color-mix(in srgb, var(--lc-notice-edge, #cfb487) 55%, var(--lc-border));
-  background:
-    linear-gradient(to bottom, rgba(120, 90, 40, 0.1), transparent 40%, rgba(255, 255, 255, 0.06)),
-    var(--lc-notice-sheet, var(--lc-surface));
-  opacity: 0;
-  pointer-events: none;
-  backface-visibility: visible;
 }
 
-.lc-notice__flap.is-top {
+.lc-notice__envelope-back {
+  inset: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lc-notice-paper, #f3e5c6) 82%, #9c7a45);
+}
+
+/* 信封里的信纸：比信封略窄，上面几道细线当作字。 */
+.lc-notice__envelope-letter {
+  z-index: 2;
+  left: 7%;
+  right: 7%;
+  top: 7%;
+  height: 86%;
+  display: flex;
+  flex-direction: column;
+  gap: 9%;
+  padding: 9% 10%;
+  border: 1px solid color-mix(in srgb, var(--lc-notice-edge, #cfb487) 55%, transparent);
+  border-radius: 4px;
+  background: var(--lc-notice-sheet, #fffaf0);
+}
+
+.lc-notice__envelope-letter i {
+  display: block;
+  height: 5%;
+  min-height: 2px;
+  border-radius: 2px;
+  background: rgba(45, 42, 38, 0.2);
+}
+
+.lc-notice__envelope-letter i:first-child {
+  width: 45%;
+}
+
+.lc-notice__envelope-letter i:last-child {
+  width: 70%;
+}
+
+.lc-notice__envelope-pocket {
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lc-notice__envelope-pocket path {
+  fill: var(--lc-notice-paper, #f3e5c6);
+  stroke: var(--lc-notice-edge, #cfb487);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.lc-notice__envelope-pocket .lc-notice__envelope-seam {
+  fill: none;
+  opacity: 0.7;
+}
+
+.lc-notice__envelope-flap {
+  z-index: 4;
   top: 0;
-  border-radius: var(--lc-radius) var(--lc-radius) 2px 2px;
-  transform-origin: 50% 100%;
+  left: 0;
+  width: 100%;
+  height: 64%;
+  overflow: visible;
+  transform-origin: 50% 0;
 }
 
-.lc-notice__flap.is-bottom {
-  bottom: 0;
-  border-radius: 2px 2px var(--lc-radius) var(--lc-radius);
-  transform-origin: 50% 0;
+.lc-notice__envelope-flap path {
+  fill: color-mix(in srgb, var(--lc-notice-paper, #f3e5c6) 92%, #b08a4e);
+  stroke: var(--lc-notice-edge, #cfb487);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .lc-notice__head {

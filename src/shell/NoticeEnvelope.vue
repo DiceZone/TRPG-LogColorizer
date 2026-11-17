@@ -1,6 +1,7 @@
 <!--
   站点公告：后台发布后，标题行右侧（直播状态的左边）露出一个斜放的米色信封，
-  上半截压在顶栏下面，隐约发光。点开时，信纸从信封的位置飞出、展开，显示公告内容（Markdown）。
+  上半截压在顶栏下面，隐约发光。点开时信封飞到屏幕中间、掀开封口，信纸从里面抽出来、放大，
+  显示公告内容（Markdown）。关闭时倒着播：信纸收回信封、封好、飞回原处。
   后端没有公告接口或没有公告时什么都不显示。
 -->
 <script setup lang="ts">
@@ -64,89 +65,94 @@ onMounted(async () => {
   }
 });
 
-// ─── 飞出与收回 ─────────────────────────────────────────────
-// 信纸是三折的：飞出时只看得到中间那一折，躺在透视空间里，边飞边放大、转正；
-// 飞到途中上折先翻开、下折再翻开，折痕最后淡去。收回时整段倒着播。
+// ─── 打开与收起 ─────────────────────────────────────────────
+// 全部动画用同一条时间轴（同样的时长，用关键帧的 offset 分段），收起时整组倒放即可。
+//   0    – 0.26  信封从顶栏下飞到屏幕中间，转正、放大
+//   0.28 – 0.44  封口向上掀开（翻过一半后转到信纸后面）
+//   0.44 – 0.66  信纸从信封里往上抽出
+//   0.68 – 1     信封往下淡出，信纸放大成公告
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** 打开的总时长；收回时按 CLOSE_RATE 倍速倒放。 */
-const DURATION = 1100;
-const CLOSE_RATE = 1.6;
-const FOLDED = 'inset(33.34% 0 33.34% 0 round 6px)';
-const TOP_OPEN = 'inset(0 0 33.34% 0 round 6px)';
-const ALL_OPEN = 'inset(0 0 0 0 round 0px)';
+const DURATION = 1500;
+const CLOSE_RATE = 1.7;
+/** 信纸抽出时升起的高度（相对信纸自身高度）：整张抽出信封口袋，再交给公告放大，不会穿帮。 */
+const LIFT = 1.02;
 
-const paper = ref<HTMLElement | null>(null);
-const flapTop = ref<HTMLElement | null>(null);
-const flapBottom = ref<HTMLElement | null>(null);
-const creases = ref<HTMLElement | null>(null);
+const flyer = ref<HTMLElement | null>(null);
+const flap = ref<HTMLElement | null>(null);
+const letter = ref<HTMLElement | null>(null);
 
-/** 从信封飞到屏幕前：起点躺平、倾斜、很小，终点正对着人。 */
-const flight = (): Keyframe[] => {
-  const from = envelope.value!.getBoundingClientRect();
-  const to = sheet.value!.getBoundingClientRect();
-  const dx = from.left + from.width / 2 - (to.left + to.width / 2);
-  const dy = from.top + from.height / 2 - (to.top + to.height / 2);
-  // 起点时只露出中间一折（高度的三分之一），让它和信封差不多大。
-  const s = Math.max(Math.min(from.width / to.width, (from.height * 3) / to.height), 0.04);
-  const p = 'perspective(1400px)';
-  return [
-    { transform: `${p} translate3d(${dx}px, ${dy}px, 0) rotateZ(-14deg) rotateX(62deg) scale(${s})`, opacity: 0.4 },
-    { transform: `${p} translate3d(${dx * 0.18}px, ${dy * 0.18}px, 0) rotateZ(-5deg) rotateX(38deg) scale(0.62)`, opacity: 1, offset: 0.42 },
-    { transform: `${p} translate3d(0, 0, 0) rotateZ(-1deg) rotateX(12deg) scale(0.9)`, offset: 0.72 },
-    { transform: `${p} translate3d(0, 0, 0) rotateZ(0deg) rotateX(0deg) scale(1)` },
-  ];
-};
+const center = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
 
-/**
- * 一折从叠着（±180°）翻到摊平（0°），翻过一半后淡出，露出底下的内容。
- * lift：叠着时离纸面的距离，避免与纸面同一平面而闪烁；上折叠在最上面。
- */
-const flapFrames = (from: number, lift: number): Keyframe[] => [
-  { transform: `translateZ(${lift}px) rotateX(${from}deg)`, opacity: 1, offset: 0 },
-  { transform: `translateZ(${lift}px) rotateX(${from}deg)`, opacity: 1, offset: 0.4 },
-  { transform: `translateZ(${lift / 2}px) rotateX(${from / 2}deg)`, opacity: 1, offset: 0.58 },
-  { transform: `translateZ(0px) rotateX(${from / 6}deg)`, opacity: 0.6, offset: 0.68 },
-  { transform: 'translateZ(0px) rotateX(0deg)', opacity: 0, offset: 0.74 },
-  { transform: 'translateZ(0px) rotateX(0deg)', opacity: 0, offset: 1 },
-];
-
-/** 播放整段动画；reverse 为收回。返回全部播完的 Promise。 */
+/** 播放整段动画；reverse 为收起。返回全部播完的 Promise。 */
 const play = (reverse: boolean) => {
-  const timing: KeyframeAnimationOptions = {
-    duration: DURATION,
-    direction: reverse ? 'reverse' : 'normal',
-    fill: reverse ? 'both' : 'backwards',
-  };
+  const from = envelope.value!.getBoundingClientRect();
+  const env = flyer.value!.getBoundingClientRect();
+  const mini = letter.value!.getBoundingClientRect();
+  const page = sheet.value!.getBoundingClientRect();
+
   const all: Animation[] = [];
-  const run = (el: HTMLElement | null, frames: Keyframe[], options: KeyframeAnimationOptions = {}) => {
-    const animation = el?.animate(frames, { ...timing, ...options });
+  const run = (el: HTMLElement | null, frames: Keyframe[], easing = 'ease-in-out') => {
+    const animation = el?.animate(frames, {
+      duration: DURATION,
+      easing,
+      direction: reverse ? 'reverse' : 'normal',
+      fill: 'both',
+    });
     if (!animation) return;
     if (reverse) animation.playbackRate = CLOSE_RATE;
     all.push(animation);
   };
 
-  run(sheet.value, flight(), { easing: 'cubic-bezier(0.3, 0.6, 0.25, 1)' });
-  // 下折跟着上折慢一拍翻开：把它的时间轴整体往后挪。
-  run(flapTop.value, flapFrames(-180, 2));
-  run(flapBottom.value, flapFrames(180, 1).map((frame) => ({
-    ...frame,
-    offset: frame.offset === 0 || frame.offset === 1 ? frame.offset : Math.min(0.99, (frame.offset as number) + 0.14),
-  })));
-  // 翻过一半时，那一折底下的内容才露出来。
-  run(paper.value, [
-    { clipPath: FOLDED, offset: 0 },
-    { clipPath: FOLDED, offset: 0.58 },
-    { clipPath: TOP_OPEN, offset: 0.585 },
-    { clipPath: TOP_OPEN, offset: 0.72 },
-    { clipPath: ALL_OPEN, offset: 0.725 },
-    { clipPath: ALL_OPEN, offset: 1 },
-  ], { easing: 'linear' });
-  run(creases.value, [
-    { opacity: 1, offset: 0 },
-    { opacity: 1, offset: 0.8 },
-    { opacity: 0, offset: 1 },
-  ], { easing: 'linear' });
+  // 信封：从顶栏下那个小信封的位置飞来。
+  const a = center(from);
+  const b = center(env);
+  const start = `translate(${a.x - b.x}px, ${a.y - b.y}px) rotate(-12deg) scale(${from.width / env.width})`;
+  run(flyer.value, [
+    { transform: start, opacity: 1, offset: 0 },
+    { transform: 'translate(0, 0) rotate(0deg) scale(1)', opacity: 1, offset: 0.26, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)' },
+    { transform: 'translate(0, 0) rotate(0deg) scale(1)', opacity: 1, offset: 0.7 },
+    { transform: 'translate(0, 36px) rotate(0deg) scale(0.96)', opacity: 0, offset: 0.92 },
+    { transform: 'translate(0, 36px) rotate(0deg) scale(0.96)', opacity: 0, offset: 1 },
+  ], 'linear');
+
+  // 封口：以上缘为轴往上翻；翻过一半后转到信纸后面。
+  run(flap.value, [
+    { transform: 'perspective(700px) rotateX(0deg)', zIndex: 4, offset: 0 },
+    { transform: 'perspective(700px) rotateX(0deg)', zIndex: 4, offset: 0.28 },
+    { transform: 'perspective(700px) rotateX(90deg)', zIndex: 4, offset: 0.36 },
+    { transform: 'perspective(700px) rotateX(90deg)', zIndex: 1, offset: 0.361 },
+    { transform: 'perspective(700px) rotateX(180deg)', zIndex: 1, offset: 0.44 },
+    { transform: 'perspective(700px) rotateX(180deg)', zIndex: 1, offset: 1 },
+  ], 'linear');
+
+  // 信封里的信纸：往上抽出，交给真正的公告。
+  run(letter.value, [
+    { transform: 'translateY(0)', opacity: 1, offset: 0 },
+    { transform: 'translateY(0)', opacity: 1, offset: 0.44, easing: 'cubic-bezier(0.3, 0, 0.2, 1)' },
+    { transform: `translateY(${-LIFT * mini.height}px)`, opacity: 1, offset: 0.66 },
+    { transform: `translateY(${-LIFT * mini.height}px)`, opacity: 1, offset: 0.68 },
+    { transform: `translateY(${-LIFT * mini.height}px)`, opacity: 0, offset: 0.69 },
+    { transform: `translateY(${-LIFT * mini.height}px)`, opacity: 0, offset: 1 },
+  ], 'linear');
+
+  // 公告：从抽出来的信纸那个位置与大小放大到屏幕中间。
+  const c = center(mini);
+  const d = center(page);
+  const lifted = `translate(${c.x - d.x}px, ${c.y - LIFT * mini.height - d.y}px) scale(${mini.width / page.width}, ${mini.height / page.height})`;
+  run(sheet.value, [
+    { transform: lifted, opacity: 0, offset: 0 },
+    { transform: lifted, opacity: 0, offset: 0.68 },
+    { transform: lifted, opacity: 1, offset: 0.69, easing: 'cubic-bezier(0.2, 0.8, 0.25, 1)' },
+    { transform: 'translate(0, 0) scale(1, 1)', opacity: 1, offset: 1 },
+  ], 'linear');
+
+  run(backdrop.value, [
+    { opacity: 0, offset: 0 },
+    { opacity: 1, offset: 0.3 },
+    { opacity: 1, offset: 1 },
+  ], 'linear');
+
   return Promise.all(all.map((animation) => animation.finished)).catch(() => undefined);
 };
 
@@ -158,21 +164,22 @@ const show = async () => {
   open.value = true;
   markRead();
   await nextTick();
-  backdrop.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduced() ? 120 : 420, easing: 'ease-out' });
+  if (reduced() && flyer.value) flyer.value.hidden = true;
   const done = reduced()
     ? sheet.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).finished
     : play(false);
   closeButton.value?.focus({ preventScroll: true });
   await done?.catch(() => undefined);
+  // 播完收起信封（fill 停在最后一帧时它已经是透明的）。
+  flyer.value?.getAnimations().forEach((animation) => animation.cancel());
+  if (flyer.value) flyer.value.hidden = true;
   busy = false;
 };
 
 const hide = async () => {
   if (!open.value || busy) return;
   busy = true;
-  backdrop.value?.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: reduced() ? 120 : DURATION / CLOSE_RATE, easing: 'ease-in', fill: 'forwards',
-  });
+  if (flyer.value && !reduced()) flyer.value.hidden = false;
   const done = reduced()
     ? sheet.value?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).finished
     : play(true);
@@ -202,8 +209,22 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
   <Teleport to="body">
     <div v-if="open" class="lc-notice">
       <div ref="backdrop" class="lc-notice__backdrop" @click="hide"></div>
+
+      <!-- 打开与收起时出现在屏幕中间的大信封：背面、里面的信纸、前面的口袋、封口。 -->
+      <div ref="flyer" class="lc-notice__envelope" aria-hidden="true">
+        <span class="lc-notice__envelope-back"></span>
+        <span ref="letter" class="lc-notice__envelope-letter"><i></i><i></i><i></i><i></i></span>
+        <svg class="lc-notice__envelope-pocket" viewBox="0 0 100 62" preserveAspectRatio="none">
+          <path d="M0 4 L50 36 L100 4 L100 62 L0 62 Z" />
+          <path class="lc-notice__envelope-seam" d="M0 62 L42 31 M100 62 L58 31" />
+        </svg>
+        <svg ref="flap" class="lc-notice__envelope-flap" viewBox="0 0 100 40" preserveAspectRatio="none">
+          <path d="M0 0 L100 0 L50 40 Z" />
+        </svg>
+      </div>
+
       <article ref="sheet" class="lc-notice__sheet" role="dialog" aria-modal="true" aria-labelledby="lc-notice-title">
-        <div ref="paper" class="lc-notice__paper">
+        <div class="lc-notice__paper">
           <header class="lc-notice__head">
             <h2 id="lc-notice-title" class="lc-notice__title">{{ title }}</h2>
             <button ref="closeButton" class="lc-icon-btn lc-notice__close" type="button" :aria-label="theme.t('notice.close')"
@@ -213,11 +234,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
             </button>
           </header>
           <div class="lc-notice__body lc-rich" v-html="html"></div>
-          <span ref="creases" class="lc-notice__creases" aria-hidden="true"></span>
         </div>
-        <!-- 折起来时盖在中间那一折上的上下两折（信纸背面）。 -->
-        <span ref="flapTop" class="lc-notice__flap is-top" aria-hidden="true"></span>
-        <span ref="flapBottom" class="lc-notice__flap is-bottom" aria-hidden="true"></span>
       </article>
     </div>
   </Teleport>

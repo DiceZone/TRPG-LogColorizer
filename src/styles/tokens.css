@@ -95,5 +95,6 @@
   --lc-preview-bg: #1a1d23;
   --lc-preview-time: #6b7280;
 
-  --lc-notice-sheet: #201e1b;
+  /* 信纸在深色模式下也是纸：稍暗一点的米白。 */
+  --lc-notice-sheet: #f1e9d8;
 }
