@@ -62,6 +62,24 @@ button {
   visibility: hidden;
 }
 
+/* 进入动画：页眉下方的每个区块从下方 4px 淡入（沿用旧版染色器的效果）。
+   等主题载好、页面真正显示时才开始，免得在隐藏时就播完。主题可用 animation: none 关掉。 */
+@keyframes lc-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lc-app:not(.is-pending) :is(.lc-top, .lc-main, .lc-aside) > * {
+  animation: lc-enter 0.3s ease-out both;
+}
+
 .lc-app {
   position: relative;
   min-height: 100vh;
@@ -1206,6 +1224,10 @@ button {
   .lc-drawer,
   .lc-drawer__scrim {
     transition: none !important;
+  }
+
+  .lc-app :is(.lc-top, .lc-main, .lc-aside) > * {
+    animation: none !important;
   }
 
   .lc-chevron {
