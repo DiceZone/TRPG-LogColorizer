@@ -1,8 +1,8 @@
 <!-- 日志区：编辑器、预览、聊天与三种论坛/工坊格式，用上方的页签切换。 -->
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useMessage } from 'naive-ui';
-import { DownToBottom } from '@vicons/carbon';
+import { ChevronDown, DownToBottom } from '@vicons/carbon';
 import SectionCard from './SectionCard.vue';
 import CodeMirror from '~/components/CodeMirror.vue';
 import PreviewMain from '~/components/previews/preview-main.vue';
@@ -25,10 +25,69 @@ const views: { id: ViewMode; label: StringKey }[] = [
   { id: 'edit', label: 'editor.view.edit' },
   { id: 'preview', label: 'editor.view.preview' },
   { id: 'chat', label: 'editor.view.chat' },
+];
+/** 收在「更多」里的视图。 */
+const moreViews: { id: ViewMode; label: StringKey }[] = [
   { id: 'bbs', label: 'editor.view.bbs' },
   { id: 'bbspineapple', label: 'editor.view.bbspineapple' },
   { id: 'trg', label: 'editor.view.trg' },
 ];
+const moreActive = computed(() => moreViews.find((item) => item.id === ws.view.value) ?? null);
+const moreOptions = computed(() => moreViews.map((item) => ({ key: item.id, label: theme.t(item.label) })));
+
+// ─── 日志区高度：默认不超过一屏，访客可以拖动底边拉长，记在本地 ───────
+const HEIGHT_KEY = 'lc-log-height';
+const MIN_HEIGHT = 240;
+const readHeight = () => {
+  try {
+    const value = Number(localStorage.getItem(HEIGHT_KEY));
+    return value >= MIN_HEIGHT ? value : null;
+  } catch {
+    return null;
+  }
+};
+const logHeight = ref<number | null>(readHeight());
+const logArea = ref<HTMLElement | null>(null);
+const logStyle = computed(() => (logHeight.value ? { '--lc-editor-height': `${logHeight.value}px` } : undefined));
+
+/** 现在的高度：没拖过时量正在显示的那个视图（其他视图是隐藏的，量出来是 0）。 */
+const currentHeight = () => {
+  if (logHeight.value) return logHeight.value;
+  const views = logArea.value?.querySelectorAll<HTMLElement>('.codemirror, .scroller');
+  const shown = views ? Array.from(views).find((el) => el.offsetParent !== null) : undefined;
+  return shown?.getBoundingClientRect().height || 480;
+};
+
+let dragFrom: { y: number; height: number } | null = null;
+const onResizeDown = (event: PointerEvent) => {
+  dragFrom = { y: event.clientY, height: currentHeight() };
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  event.preventDefault();
+};
+const onResizeMove = (event: PointerEvent) => {
+  if (!dragFrom) return;
+  logHeight.value = Math.round(Math.max(MIN_HEIGHT, dragFrom.height + event.clientY - dragFrom.y));
+};
+const onResizeUp = () => {
+  if (!dragFrom) return;
+  dragFrom = null;
+  try {
+    if (logHeight.value) localStorage.setItem(HEIGHT_KEY, String(logHeight.value));
+  } catch { /* 不能存就算了，这次仍然有效 */ }
+};
+const onResizeKey = (event: KeyboardEvent) => {
+  if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+  event.preventDefault();
+  logHeight.value = Math.max(MIN_HEIGHT, Math.round(currentHeight() + (event.key === 'ArrowDown' ? 40 : -40)));
+  onResizeUp();
+};
+const resetHeight = () => {
+  logHeight.value = null;
+  try {
+    localStorage.removeItem(HEIGHT_KEY);
+  } catch { /* 同上 */ }
+};
+onBeforeUnmount(() => { dragFrom = null; });
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const onFile = (event: Event) => {
@@ -121,6 +180,14 @@ onMounted(() => {
         <button v-for="item in views" :key="item.id" class="lc-tab" type="button" role="tab"
           :aria-selected="ws.view.value === item.id" :class="{ 'is-active': ws.view.value === item.id }"
           @click="ws.setView(item.id)">{{ theme.t(item.label) }}</button>
+        <n-dropdown trigger="click" placement="bottom-end" :options="moreOptions" :value="moreActive?.id"
+          @select="(key: ViewMode) => ws.setView(key)">
+          <button class="lc-tab lc-tab--more" type="button" role="tab" aria-haspopup="menu"
+            :aria-selected="Boolean(moreActive)" :class="{ 'is-active': moreActive }">
+            {{ moreActive ? theme.t(moreActive.label) : theme.t('editor.view.more') }}
+            <ChevronDown aria-hidden="true" />
+          </button>
+        </n-dropdown>
       </div>
     </template>
 
@@ -152,7 +219,7 @@ onMounted(() => {
     <n-spin :show="ws.loading.value">
       <template #description>{{ theme.t('editor.loading') }}</template>
 
-      <div class="lc-log-area">
+      <div ref="logArea" class="lc-log-area" :style="logStyle">
         <div v-show="ws.view.value === 'edit'" class="lc-editor-wrap">
           <CodeMirror @change="ws.onChange" />
         </div>
@@ -169,6 +236,12 @@ onMounted(() => {
           @click="jumpToLatest">
           <DownToBottom aria-hidden="true" />
         </button>
+      </div>
+      <div class="lc-resize" role="separator" aria-orientation="horizontal" tabindex="0"
+        :title="theme.t('editor.resize')" :aria-label="theme.t('editor.resize')"
+        @pointerdown="onResizeDown" @pointermove="onResizeMove" @pointerup="onResizeUp" @pointercancel="onResizeUp"
+        @dblclick="resetHeight" @keydown="onResizeKey">
+        <span aria-hidden="true"></span>
       </div>
     </n-spin>
   </SectionCard>

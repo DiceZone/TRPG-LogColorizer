@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useMessage, type DropdownOption } from 'naive-ui';
+import { View, ViewOff } from '@vicons/carbon';
 import SectionCard from './SectionCard.vue';
 import CharAvatar from '~/shell/CharAvatar.vue';
 import AvatarCropper from '~/shell/AvatarCropper.vue';
@@ -101,6 +102,19 @@ const onMenu = (key: string) => {
   }
 };
 
+/** 隐藏发言：把类型设为「隐藏」，记住原来的类型，取消隐藏时还原。角色本身不删除。 */
+const roleBeforeHide = new Map<string, CharItem['role']>();
+const toggleHidden = (pc: CharItem) => {
+  const id = packNameId(pc);
+  if (pc.role === '隐藏') {
+    pc.role = roleBeforeHide.get(id) ?? '角色';
+    roleBeforeHide.delete(id);
+  } else {
+    roleBeforeHide.set(id, pc.role);
+    pc.role = '隐藏';
+  }
+};
+
 const count = computed(() => store.pcList.length);
 </script>
 
@@ -133,6 +147,13 @@ const count = computed(() => store.pcList.length);
         <n-input v-model:value="pc.name" class="lc-char__name" size="small" :bordered="false"
           :placeholder="theme.t('characters.name')" :disabled="ws.locked.value"
           @focus="ws.nameFocus(pc)" @change="ws.nameChanged(pc)" />
+
+        <button class="lc-icon-btn lc-char__eye" type="button" :aria-pressed="pc.role === '隐藏'"
+          :title="pc.role === '隐藏' ? theme.t('characters.show') : theme.t('characters.hide')"
+          :aria-label="`${pc.name}：${pc.role === '隐藏' ? theme.t('characters.show') : theme.t('characters.hide')}`"
+          @click="toggleHidden(pc)">
+          <component :is="pc.role === '隐藏' ? ViewOff : View" aria-hidden="true" />
+        </button>
 
         <n-dropdown trigger="click" placement="bottom-end" :options="menuFor(pc, index)" @select="onMenu">
           <button class="lc-icon-btn lc-char__menu" type="button" :aria-label="`${pc.name} 的更多操作`">

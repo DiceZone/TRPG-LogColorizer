@@ -28,6 +28,8 @@ export const DEFAULT_STRINGS = {
   'characters.delete': '删除角色',
   'characters.avatarUpload': '上传头像',
   'characters.avatarRemove': '恢复默认头像',
+  'characters.hide': '隐藏此角色的发言',
+  'characters.show': '显示此角色的发言',
   'characters.avatarNote': '点头像可以换成自己的图片，只保存在这个浏览器里，不会上传。',
 
   'cropper.title': '裁剪头像',
@@ -44,6 +46,8 @@ export const DEFAULT_STRINGS = {
   'editor.view.bbs': '论坛代码',
   'editor.view.bbspineapple': '论坛代码（多行）',
   'editor.view.trg': '回声工坊',
+  'editor.view.more': '更多',
+  'editor.resize': '拖动调整日志区域高度，双击恢复默认',
   'editor.clear': '清空内容',
   'editor.flush': '强制刷新',
   'editor.highlight': '编辑器染色',

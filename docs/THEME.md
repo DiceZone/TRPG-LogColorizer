@@ -110,10 +110,10 @@ pnpm theme:pack path/to/my-theme
 | `.lc-brand` `__logo` `__name` `__version` | 页眉左侧 |
 | `.lc-intro` `__head` `__title` `__desc` `__notice` | 标题区块；`__head` 是标题与直播状态那一行 |
 | `.lc-card` `__head` `__title` `__desc` `__actions` `__body`，以及 `[data-section="<区块>"]` | 区块外框 |
-| `.lc-btn` `--primary` `--small`，`.lc-icon-btn`，`.lc-tag`，`.lc-tabs` `.lc-tab.is-active` | 控件 |
+| `.lc-btn` `--primary` `--small`，`.lc-icon-btn`，`.lc-tag`，`.lc-tabs` `.lc-tab.is-active` `.lc-tab--more` | 控件；`.lc-tab--more` 是「更多」页签 |
 | `.lc-toggle` `.is-on` | 开关按钮（编辑器染色、自动滚动等） |
-| `.lc-log-area` `.lc-jump` | 日志区与右下角的「跳到最新」 |
-| `.lc-char` `__avatar` `__name` `__meta` `.is-linked`（颜色取 `--lc-char-color`） | 角色卡 |
+| `.lc-log-area` `.lc-jump` `.lc-resize` | 日志区、右下角的「跳到最新」、底边的高度拖动条 |
+| `.lc-char` `__avatar` `__name` `__eye` `__meta` `.is-linked` `.is-hidden`（颜色取 `--lc-char-color`） | 角色卡；`__eye` 是隐藏发言的开关 |
 | `.lc-avatar`（`--lc-avatar-size` `--lc-avatar-color`） | 头像 |
 | `.lc-drawer` `.lc-drawer__tab` | 窄屏时的侧栏抽屉与左缘页签 |
 | `.lc-chat` `.lc-chat__date` `.lc-msg` `__avatar` `__name` `__id` `__time` `__bubble`（骰娘的 Markdown 消息另有 `.is-rich`），`.is-continued` `.is-dice` `.is-host` | 聊天视图的一条消息 |

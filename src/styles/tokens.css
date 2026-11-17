@@ -33,7 +33,8 @@
   --lc-editor-gutter-bg: #f6f7f9;
   --lc-editor-gutter-border: #dfe2e7;
   --lc-editor-active-line: #f3f4f6;
-  --lc-editor-height: clamp(26rem, calc(100vh - 15rem), 60rem);
+  /* 默认让整张日志卡片落在一屏之内；访客可以拖动底边拉长。 */
+  --lc-editor-height: max(18rem, calc(100dvh - 15rem));
   --lc-editor-font-size: 15px;
   --lc-preview-bg: #ffffff;
   --lc-preview-time: #9ca3af;       /* 预览里时间戳的颜色 */

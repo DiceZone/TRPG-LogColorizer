@@ -578,6 +578,18 @@ button {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+.lc-tab--more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+.lc-tab--more svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* ── 渲染选项 ───────────────────────────────────────────── */
 
 .lc-options {
@@ -711,11 +723,11 @@ button {
 
 .lc-char {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   grid-template-areas:
-    "avatar name menu"
-    "avatar meta meta"
-    "linked linked linked";
+    "avatar name eye menu"
+    "avatar meta meta meta"
+    "linked linked linked linked";
   align-items: center;
   gap: 2px 12px;
   padding: 10px 8px 10px 12px;
@@ -811,6 +823,23 @@ button {
   height: 30px;
 }
 
+.lc-char__eye {
+  grid-area: eye;
+  min-width: 30px;
+  height: 30px;
+  margin-right: -10px;
+  color: var(--lc-text-faint);
+}
+
+.lc-char__eye svg {
+  width: 17px;
+  height: 17px;
+}
+
+.lc-char__eye[aria-pressed="true"] {
+  color: var(--lc-danger, #e5484d);
+}
+
 .lc-char__meta {
   grid-area: meta;
   display: flex;
@@ -853,8 +882,17 @@ button {
   background: var(--lc-surface-sunken);
 }
 
-.lc-char.is-hidden .lc-char__avatar {
-  opacity: 0.45;
+/* 隐藏了发言的角色：整张卡片模糊，指针移上去（或在卡片里操作）时才看得清。 */
+.lc-char.is-hidden > * {
+  filter: blur(5px);
+  opacity: 0.7;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.lc-char.is-hidden:hover > *,
+.lc-char.is-hidden:focus-within > * {
+  filter: none;
+  opacity: 1;
 }
 
 .lc-char__linked {
@@ -957,6 +995,34 @@ button {
 .lc-jump svg {
   width: 18px;
   height: 18px;
+}
+
+/* 日志区底边的拖动条：上下拖动调整高度，双击恢复默认。 */
+.lc-resize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: 6px;
+  cursor: ns-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.lc-resize span {
+  width: 44px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--lc-border-strong, var(--lc-border));
+  transition: background-color 0.15s ease, width 0.15s ease;
+}
+
+.lc-resize:hover span,
+.lc-resize:active span,
+.lc-resize:focus-visible span {
+  width: 64px;
+  background: var(--lc-primary);
 }
 
 /* 回声工坊上方的介绍。 */
