@@ -6,7 +6,7 @@ import {
 } from 'vue';
 import { NButton, NText, useMessage, useModal, useNotification } from 'naive-ui';
 import { ViewUpdate } from '@codemirror/view';
-import { debounce } from 'lodash-es';
+import { debounce, shuffle } from 'lodash-es';
 import { strFromU8, unzlibSync } from 'fflate';
 import { decompress as zstdDecompress } from 'fzstd';
 import { parquetReadObjects } from 'hyparquet';
@@ -94,9 +94,25 @@ function createWorkspace() {
 
   // ─── 角色 ─────────────────────────────────────────────────
 
+  /** 刷新色板：从易读的预置颜色里重新随机分配所有角色的颜色，颜色选择器的预置色也换一组。 */
   const refreshColors = () => {
     colors.value = randomColor({ count: 16 });
-    message.success('色板刷新成功！', { duration: 800 });
+    const pool = shuffle([...store.palette]);
+    let next = 0;
+    for (const pc of store.pcList) {
+      if (store.pcLinks[packNameId(pc)]) continue;
+      pc.color = pool[next % pool.length];
+      next += 1;
+      store.pcNameColorMap.set(pc.name, pc.color);
+    }
+    // 关联到别的角色的账号跟着那个角色的颜色。
+    for (const pc of store.pcList) {
+      const target = store.pcLinks[packNameId(pc)];
+      const owner = target ? store.pcMap.get(target) : null;
+      if (owner) pc.color = owner.color;
+    }
+    store.colorMapSave();
+    message.success('已为所有角色重新分配颜色', { duration: 1200 });
   };
 
   const colorChanged = debounce((v: string, i: CharItem) => {
