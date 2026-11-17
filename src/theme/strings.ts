@@ -12,7 +12,7 @@ export const DEFAULT_STRINGS = {
   'options.desc': '控制预览与导出内容的显示细节',
 
   'characters.title': '角色列表',
-  'characters.desc': '改名、换色、设定类型；同一个人换了账号，可以关联成一个角色',
+  'characters.desc': '修改角色名、染色颜色、身份，允许将不同发言人关联为同一个角色。',
   'characters.empty': '导入或粘贴日志后，这里会显示识别到的角色',
   'characters.refreshColors': '刷新色板',
   'characters.refreshHint': '颜色选择器里的预置颜色可以重新随机一组',
