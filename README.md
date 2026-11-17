@@ -37,7 +37,7 @@
 
 ### 静态托管（EdgeOne Pages、Cloudflare Pages、GitHub Pages、对象存储……）
 
-构建命令 `pnpm build`，输出目录 `dist`。需要 Node.js 26（与原染色器相同）。
+构建命令 `pnpm build`，输出目录 `dist`。Node.js 选 24（24.18.0 以上，EdgeOne Pages 目前提供的就是这条版本线）或 26（26.12.1 以上）。
 
 配置用环境变量，在托管平台的项目设置里填，**改了之后重新部署一次生效**：
 
@@ -65,7 +65,7 @@ docker compose up -d --build
 
 ## 开发
 
-需要 Node.js 26。
+需要 Node.js 24（24.18.0 以上）或 26（26.12.1 以上）；更旧的版本构建前会被拦下。
 
 ```bash
 pnpm dev          # 开发
