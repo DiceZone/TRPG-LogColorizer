@@ -2,7 +2,7 @@
 // 界面的各个区块（角色、编辑器、导出……）都从这里取状态与操作，自己只管显示。
 // 须在 Naive UI 的 message / modal / notification 容器之内的组件 setup 里创建一次，再经 provide 下发。
 import {
-  computed, h, inject, InjectionKey, nextTick, provide, reactive, ref, render, watch,
+  computed, h, inject, InjectionKey, nextTick, provide, reactive, ref, render, toRaw, watch,
 } from 'vue';
 import { NButton, NText, useMessage, useModal, useNotification } from 'naive-ui';
 import { ViewUpdate } from '@codemirror/view';
@@ -186,6 +186,28 @@ function createWorkspace() {
     });
   };
 
+  /** 有修改还没保存时问一下：保存、放弃，或回去继续编辑（关掉对话框也算继续编辑）。 */
+  const askSaveDraft = (onSave: () => void, onDiscard: () => void, onContinue: () => void) => {
+    let settled = false;
+    const settle = (action: () => void) => {
+      settled = true;
+      m.destroy();
+      action();
+    };
+    const m = modal.create({
+      title: '保存修改？',
+      preset: 'card',
+      style: { width: 'min(26rem, calc(100vw - 32px))' },
+      content: () => '这条消息的修改还没有保存。',
+      onAfterLeave: () => { if (!settled) onContinue(); },
+      footer: () => h('div', { style: 'display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap' }, [
+        h(NButton, { onClick: () => settle(onContinue) }, () => '继续编辑'),
+        h(NButton, { onClick: () => settle(onDiscard) }, () => '放弃修改'),
+        h(NButton, { type: 'primary', onClick: () => settle(onSave) }, () => '保存'),
+      ]),
+    });
+  };
+
   let lastNameChange = 0;
   let lastPCName = '';
 
@@ -270,8 +292,15 @@ function createWorkspace() {
     }
   };
 
+  // flush 之后，日志的内部数据已经是最新的，编辑器只是跟着换文字：不能再拿这次变更去重新解析，
+  // 否则解析又触发 flush，没完没了（编辑器显示时靠 flags 判断挡掉，在聊天等视图里编辑器隐藏，挡不住）。
   logMan.ev.on('textSet', (text) => {
-    store.editor.dispatch({ changes: { from: 0, to: store.editor.state.doc.length, insert: text } });
+    programmaticChange = true;
+    try {
+      store.editor.dispatch({ changes: { from: 0, to: store.editor.state.doc.length, insert: text } });
+    } finally {
+      programmaticChange = false;
+    }
     const m = new Map<string, CharItem>();
     for (const i of logMan.curItems) {
       if (i.isRaw) continue;
@@ -315,8 +344,42 @@ function createWorkspace() {
 
   // ─── 预览 ─────────────────────────────────────────────────
 
+  /** 预览里的副本（换了名字或去掉公式的）对应日志里的哪一条。 */
+  let originals = new WeakMap<LogItem, LogItem>();
+  // 预览列表是响应式的，组件拿到的是代理对象：先还原成原始对象再比对。
+  const sourceOf = (item: LogItem) => {
+    const raw = toRaw(item);
+    return toRaw(originals.get(raw) ?? raw);
+  };
+
+  /** 消息原文（预览里可能是去掉公式后的副本）。 */
+  const rawMessageOf = (item: LogItem) => sourceOf(item).message;
+
+  /** 修改一条消息的内容，等同于在编辑器里改那一段。 */
+  const editMessage = (item: LogItem, text: string) => {
+    const target = sourceOf(item);
+    const at = logMan.curItems.indexOf(target);
+    if (at < 0) return false;
+    // 换成新对象：直接改原始对象的话，预览拿到的还是同一个对象，界面不会更新。
+    logMan.curItems[at] = { ...target, message: text.replaceAll('\r\n', '\n') };
+    logMan.flush();
+    showPreview();
+    return true;
+  };
+
+  /** 删除一条消息（先确认），等同于在编辑器里删掉那一段。 */
+  const deleteMessage = (item: LogItem) => {
+    confirm('删除消息', () => '即将删除这条消息，确定吗？', () => {
+      const target = sourceOf(item);
+      logMan.curItems = logMan.curItems.filter((i) => i !== target);
+      logMan.flush();
+      showPreview();
+    });
+  };
+
   function showPreview() {
     const tmp: LogItem[] = [];
+    originals = new WeakMap();
     let index = 0;
     for (const i of logMan.curItems) {
       if (i.isRaw) continue;
@@ -340,6 +403,7 @@ function createWorkspace() {
         const message = stripMath(shown.message);
         if (message !== shown.message) shown = { ...shown, message };
       }
+      if (shown !== i) originals.set(shown, i);
       tmp.push(shown);
       index += 1;
     }
@@ -708,13 +772,14 @@ function createWorkspace() {
     setTimeout(() => doFlush(), 3000);
   };
 
-  const locked = computed(() => view.value !== 'edit');
+  // 编辑器与聊天视图里可以改名、删除角色；其他预览只看不改。
+  const locked = computed(() => view.value !== 'edit' && view.value !== 'chat');
 
   return {
     store, loading, logName, view, previewItems, colors, isMobile, live, locked,
     refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc,
     clearText, doFlush, onChange, setHighlight, importFile,
-    setView, showPreview,
+    setView, showPreview, askSaveDraft, rawMessageOf, editMessage, deleteMessage,
     exportRecordRaw, exportRecordDOC, exportRecordTalkDOC, exportRecordDocx,
     start, pauseLive, resumeLive,
   };

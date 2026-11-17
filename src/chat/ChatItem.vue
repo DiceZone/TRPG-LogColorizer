@@ -2,10 +2,15 @@
   聊天视图里的一条消息：头像、名字、账号与时间、气泡。
   同一个人连续发言时只在第一条显示头像与名字；骰娘的消息靠右，像群聊里「自己」发的；
   换了一天时，上方插一条居中的日期。
+  指针移到消息上时，气泡右下角浮出「编辑」「删除」，效果等同于在编辑器里改那一段。
 -->
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import dayjs from 'dayjs';
+import { Checkmark, Close, Edit, TrashCan } from '@vicons/carbon';
+import { useTheme } from '~/theme/useTheme';
+import { useWorkspace } from '~/workspace/useWorkspace';
+import { chatEdit, endChatEdit } from './chatEdit';
 import CharAvatar from '~/shell/CharAvatar.vue';
 import { LogItem } from '~/logManager/types';
 import { useStore } from '~/store';
@@ -22,6 +27,8 @@ const props = defineProps<{
 }>();
 
 const store = useStore();
+const theme = useTheme();
+const ws = useWorkspace();
 
 /** 同一个人、五分钟之内的连续发言并成一组。 */
 const GROUP_SECONDS = 5 * 60;
@@ -104,12 +111,62 @@ const html = computed(() => {
   }
   return msg.trim().replaceAll('<br />', '\n').replaceAll('\n', '<br />');
 });
+
+// ─── 编辑与删除 ─────────────────────────────────────────────
+const editing = computed(() => chatEdit.index >= 0 && chatEdit.index === props.source.index);
+const editBox = ref<HTMLElement | null>(null);
+const textarea = ref<HTMLTextAreaElement | null>(null);
+
+const startEdit = async () => {
+  // 另一条正在编辑：那边会先问要不要保存，这里不抢。
+  if (chatEdit.index >= 0) return;
+  chatEdit.index = props.source.index ?? -1;
+  chatEdit.original = ws.rawMessageOf(props.source);
+  chatEdit.draft = chatEdit.original;
+  await nextTick();
+  textarea.value?.focus();
+  textarea.value?.setSelectionRange(chatEdit.draft.length, chatEdit.draft.length);
+};
+
+const save = () => {
+  if (chatEdit.draft !== chatEdit.original) ws.editMessage(props.source, chatEdit.draft);
+  endChatEdit();
+};
+
+const cancel = () => endChatEdit();
+
+const remove = () => ws.deleteMessage(props.source);
+
+// 点到编辑框外面：没改过就直接收起，改过了就问保存还是放弃。
+const onPointerDown = (event: PointerEvent) => {
+  if (!editing.value || chatEdit.asking) return;
+  const target = event.target as Node | null;
+  if (target && editBox.value?.contains(target)) return;
+  if (chatEdit.draft === chatEdit.original) {
+    cancel();
+    return;
+  }
+  chatEdit.asking = true;
+  ws.askSaveDraft(save, cancel, () => {
+    chatEdit.asking = false;
+    nextTick(() => textarea.value?.focus());
+  });
+};
+
+watch(editing, (on) => {
+  if (on) document.addEventListener('pointerdown', onPointerDown, true);
+  else document.removeEventListener('pointerdown', onPointerDown, true);
+}, { immediate: true });
+onBeforeUnmount(() => document.removeEventListener('pointerdown', onPointerDown, true));
+
+/** 编辑框按内容的行数长高（浏览器不支持 field-sizing 时用）。 */
+const rows = computed(() => Math.min(14, Math.max(3, chatEdit.draft.split('\n').length + 1)));
 </script>
 
 <template>
   <div class="lc-msg-row">
     <div v-if="dateLabel" class="lc-chat__date"><span>{{ dateLabel }}</span></div>
-    <div class="lc-msg" :class="{ 'is-continued': continued, 'is-dice': isDice, 'is-host': role === '主持人' }"
+    <div class="lc-msg" :class="{ 'is-continued': continued, 'is-dice': isDice, 'is-host': role === '主持人', 'is-editing': editing }"
       :style="{ '--lc-char-color': color }">
       <CharAvatar v-if="!continued" class="lc-msg__avatar" :id="source.IMUserId" :name="source.nickname" :color="color" />
       <span v-else class="lc-msg__gutter">{{ time.slice(0, 5) }}</span>
@@ -120,7 +177,32 @@ const html = computed(() => {
           <span v-if="role === '主持人'" class="lc-msg__badge">主持人</span>
           <span v-if="time" class="lc-msg__time">{{ time }}</span>
         </div>
-        <div class="lc-msg__bubble" :class="{ 'lc-rich': richHtml !== null }" v-html="html"></div>
+        <div v-if="editing" ref="editBox" class="lc-msg__edit">
+          <textarea ref="textarea" v-model="chatEdit.draft" class="lc-msg__textarea" :rows="rows" spellcheck="false"
+            :aria-label="theme.t('chat.edit')" @keydown.esc.prevent="cancel" @keydown.ctrl.enter.prevent="save"
+            @keydown.meta.enter.prevent="save"></textarea>
+          <div class="lc-msg__edit-actions">
+            <button type="button" :title="theme.t('chat.cancel')" :aria-label="theme.t('chat.cancel')" @click="cancel">
+              <Close aria-hidden="true" />
+            </button>
+            <button type="button" class="is-primary" :title="theme.t('chat.save')" :aria-label="theme.t('chat.save')"
+              @click="save">
+              <Checkmark aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+        <div v-else class="lc-msg__bubble-wrap">
+          <div class="lc-msg__bubble" :class="{ 'lc-rich': richHtml !== null }" v-html="html"></div>
+          <div class="lc-msg__tools">
+            <button type="button" :title="theme.t('chat.edit')" :aria-label="theme.t('chat.edit')" @click="startEdit">
+              <Edit aria-hidden="true" />
+            </button>
+            <button type="button" class="is-danger" :title="theme.t('chat.delete')" :aria-label="theme.t('chat.delete')"
+              @click="remove">
+              <TrashCan aria-hidden="true" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

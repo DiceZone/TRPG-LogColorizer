@@ -1448,6 +1448,125 @@ button {
   border: 1px solid color-mix(in srgb, var(--lc-char-color, var(--lc-primary)) 28%, transparent);
 }
 
+/* 指针移到消息上时，气泡右下角浮出「编辑」「删除」。 */
+.lc-msg__bubble-wrap {
+  position: relative;
+  max-width: 100%;
+}
+
+.lc-msg__tools {
+  position: absolute;
+  z-index: 2;
+  right: -6px;
+  bottom: -12px;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--lc-border);
+  border-radius: 999px;
+  background: var(--lc-surface);
+  box-shadow: var(--lc-shadow-raised);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.lc-msg:hover .lc-msg__tools,
+.lc-msg__tools:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lc-msg__tools button,
+.lc-msg__edit-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--lc-text-muted);
+  cursor: pointer;
+}
+
+.lc-msg__tools button:hover {
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text);
+}
+
+.lc-msg__tools button.is-danger:hover {
+  color: var(--lc-danger);
+}
+
+.lc-msg__tools svg,
+.lc-msg__edit-actions svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* 编辑中：气泡换成编辑框，显示原文，右下角确认／放弃。 */
+.lc-msg.is-editing .lc-msg__body {
+  flex: 1;
+}
+
+.lc-msg__edit {
+  width: min(40rem, 100%);
+  padding: 8px;
+  border: 1px solid var(--lc-primary);
+  border-radius: 12px;
+  background: var(--lc-surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lc-primary) 18%, transparent);
+}
+
+.lc-msg__textarea {
+  display: block;
+  width: 100%;
+  min-height: 4.5em;
+  max-height: 22em;
+  padding: 4px 6px;
+  border: 0;
+  outline: 0;
+  resize: vertical;
+  background: transparent;
+  color: var(--lc-text);
+  font-family: var(--lc-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  field-sizing: content;
+}
+
+.lc-msg__edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.lc-msg__edit-actions button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--lc-border);
+}
+
+.lc-msg__edit-actions button:hover {
+  color: var(--lc-text);
+  background: var(--lc-surface-sunken);
+}
+
+.lc-msg__edit-actions button.is-primary {
+  border-color: var(--lc-primary);
+  background: var(--lc-primary);
+  color: var(--lc-primary-contrast, #fff);
+}
+
+.lc-msg__edit-actions button.is-primary:hover {
+  background: var(--lc-primary-hover, var(--lc-primary));
+  color: var(--lc-primary-contrast, #fff);
+}
+
 .lc-msg__bubble img {
   display: block;
   max-width: min(260px, 100%) !important;
