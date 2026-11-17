@@ -38,6 +38,11 @@ const asideSections = computed(() =>
 const mainSections = computed(() =>
   theme.sections.value.filter((id) => !asideSections.value.includes(id) && !topSections.value.includes(id)));
 
+// ─── 可折叠区块 ─────────────────────────────────────────────
+
+/** 当前展开的可折叠区块（角色、渲染选项、导出）：同一时间只展开一个。 */
+provide('lc-accordion', ref<string | null>(null));
+
 // ─── 窄屏抽屉 ───────────────────────────────────────────────
 
 /** 抽屉里正在看的区块；为空时抽屉收起。 */
