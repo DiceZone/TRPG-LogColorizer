@@ -24,6 +24,7 @@ import {
   applyQQImageRKeyReplacement, shouldApplyQQImageRKeyReplacement, msgAtFormat, msgCommandFormat,
   msgImageFormat, msgIMUseridFormat, msgOffTopicFormat,
 } from '~/utils';
+import { stripMath } from '~/utils/texMath';
 import { exportFileDoc, exportFileDocx, exportFileRaw } from '~/utils/exporter';
 import type { DocxExportEntry } from '~/utils/exporter';
 import PreviewItem from '~/components/previews/preview-main-item.vue';
@@ -317,7 +318,13 @@ function createWorkspace() {
       // 关联到别的角色的账号：换成那个角色的名字与账号显示，颜色、头像、导出都跟着走。
       const pc = store.resolvePc(i);
       const linked = pc && store.pcLinks[packNameId(i)] ? pc : null;
-      tmp.push(linked ? { ...i, nickname: linked.name, IMUserId: linked.IMUserId } : i);
+      let shown: LogItem = linked ? { ...i, nickname: linked.name, IMUserId: linked.IMUserId } : i;
+      // 公式过滤：骰娘消息里的公式换成纯文字，聊天、预览与导出都用这一份。
+      if (store.exportOptions.mathHide && (i.isDice || pc?.role === '骰子')) {
+        const message = stripMath(shown.message);
+        if (message !== shown.message) shown = { ...shown, message };
+      }
+      tmp.push(shown);
       index += 1;
     }
     previewItems.value = tmp;
@@ -331,6 +338,7 @@ function createWorkspace() {
   };
 
   watch(() => store.exportOptions.offTopicHide, showPreview);
+  watch(() => store.exportOptions.mathHide, showPreview);
   watch(() => store.pcList.map((pc) => `${pc.IMUserId}-${pc.role}-${pc.name}`), () => showPreview(), { deep: false });
   watch(() => store.pcLinks, () => showPreview());
 

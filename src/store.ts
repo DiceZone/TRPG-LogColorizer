@@ -42,6 +42,7 @@ export const useStore = defineStore('main', {
         commandHide: false,
         imageHide: false,
         offTopicHide: false,
+        mathHide: false,
         timeHide: false,
         userIdHide: true,
         yearHide: true,

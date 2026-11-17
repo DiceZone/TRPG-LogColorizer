@@ -12,6 +12,8 @@ import { useStore } from '~/store';
 import {
   escapeHTML, msgAtFormat, msgCommandFormat, msgImageFormat, msgIMUseridFormat, msgOffTopicFormat,
 } from '~/utils';
+import { stripQQOfficialFaces } from '~/utils/qqOfficialFace';
+import { useRichText } from './useRichText';
 
 const props = defineProps<{
   source: LogItem;
@@ -59,7 +61,29 @@ const time = computed(() => {
   return item.timeText ?? '';
 });
 
+const rich = useRichText();
+
+/** CQ 码等标记：图片照常显示，其他不认识的码去掉。 */
+const renderCode = (code: string) => msgImageFormat(escapeHTML(code), store.exportOptions, true)
+  .replace(/\[CQ:(?!image|at).+?,[^\]]+\]/g, '')
+  .replace(/\[mirai:(?!image).+?:[^\]]+\]/g, '');
+
+/** 骰娘的消息按 Markdown 显示，公式用 KaTeX 排版。 */
+const diceHtml = computed(() => {
+  const render = rich.value;
+  if (!render || !isDice.value) return null;
+  const options = store.exportOptions;
+  let raw = props.source.message;
+  for (const p of store.pcList) raw = raw.replaceAll(`<${p.name}>`, p.name);
+  if (options.imageHide) raw = stripQQOfficialFaces(raw);
+  raw = msgCommandFormat(raw, options);
+  raw = msgAtFormat(raw, store.pcList);
+  // Discord 与 KOOK 的 @ 要在转义之后才认得出来。
+  return msgAtFormat(render(raw.trim(), renderCode), store.pcList);
+});
+
 const html = computed(() => {
+  if (diceHtml.value !== null) return diceHtml.value;
   const item = props.source;
   const options = store.exportOptions;
   let msg = msgImageFormat(escapeHTML(item.message), options, true);
@@ -89,7 +113,7 @@ const html = computed(() => {
           <span v-if="role === '主持人'" class="lc-msg__badge">主持人</span>
           <span v-if="time" class="lc-msg__time">{{ time }}</span>
         </div>
-        <div class="lc-msg__bubble" v-html="html"></div>
+        <div class="lc-msg__bubble" :class="{ 'is-rich': diceHtml !== null }" v-html="html"></div>
       </div>
     </div>
   </div>
