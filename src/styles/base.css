@@ -306,6 +306,7 @@ button {
 /* ── 区块 ───────────────────────────────────────────────── */
 
 .lc-intro__head {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -323,13 +324,14 @@ button {
 /* ── 公告信封与信纸 ─────────────────────────────────────── */
 
 /* 斜放的米色信封，上半截压在顶栏下面，隐约发光；指针移上去时往外探一点。 */
+/* 位置固定在直播状态的左边（直播状态约 12rem 宽），有没有直播都在同一处。 */
 .lc-notice-env {
-  position: relative;
+  position: absolute;
   z-index: 20;
-  align-self: flex-start;
+  top: calc(-1 * var(--lc-gap) - 12px);
+  right: calc(12rem + 14px);
   width: 50px;
   height: 36px;
-  margin-top: calc(-1 * var(--lc-gap) - 15px);
   padding: 0;
   border: 0;
   background: none;
@@ -479,10 +481,11 @@ button {
 /* 手机上不压在顶栏下面，跟标题排在同一行。 */
 @media (max-width: 640px) {
   .lc-notice-env {
-    align-self: center;
+    position: relative;
+    top: auto;
+    right: auto;
     width: 40px;
     height: 29px;
-    margin-top: 0;
     transform-origin: 50% 50%;
   }
 
