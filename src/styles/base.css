@@ -365,8 +365,10 @@ button {
   border-radius: 4px;
 }
 
+/* 打开期间、以及关闭后还没归位的那几秒：顶栏下的信封先藏起来。 */
 .lc-notice-env.is-open {
   opacity: 0;
+  pointer-events: none;
 }
 
 .lc-notice-env svg {

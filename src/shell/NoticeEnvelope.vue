@@ -1,7 +1,7 @@
 <!--
   站点公告：后台发布后，标题行右侧（直播状态的左边）露出一个斜放的米色信封，
   上半截压在顶栏下面，隐约发光。点开时信封飞到屏幕中间、掀开封口，信纸从里面抽出来、放大，
-  显示公告内容（Markdown）。关闭时倒着播：信纸收回信封、封好、飞回原处。
+  显示公告内容（Markdown）。关闭时信纸往下滑走、淡出；过一会儿信封再从顶栏后面悄悄滑下来归位。
   后端没有公告接口或没有公告时什么都不显示。
 -->
 <script setup lang="ts">
@@ -65,8 +65,8 @@ onMounted(async () => {
   }
 });
 
-// ─── 打开与收起 ─────────────────────────────────────────────
-// 全部动画用同一条时间轴（同样的时长，用关键帧的 offset 分段），收起时整组倒放即可。
+// ─── 打开与关闭 ─────────────────────────────────────────────
+// 打开的全部动画用同一条时间轴（同样的时长，用关键帧的 offset 分段）：
 //   0    – 0.26  信封从顶栏下飞到屏幕中间，转正、放大
 //   0.28 – 0.44  封口向上掀开（翻过一半后转到信纸后面）
 //   0.44 – 0.66  信纸从信封里往上抽出
@@ -74,7 +74,8 @@ onMounted(async () => {
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const DURATION = 1500;
-const CLOSE_RATE = 1.7;
+/** 关闭后隔多久，信封从顶栏后面滑下来归位。 */
+const RETURN_DELAY = 3000;
 /** 信纸抽出时升起的高度（相对信纸自身高度）：整张抽出信封口袋，再交给公告放大，不会穿帮。 */
 const LIFT = 1.02;
 
@@ -84,8 +85,8 @@ const letter = ref<HTMLElement | null>(null);
 
 const center = (rect: DOMRect) => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
 
-/** 播放整段动画；reverse 为收起。返回全部播完的 Promise。 */
-const play = (reverse: boolean) => {
+/** 播放打开的整段动画。返回全部播完的 Promise。 */
+const play = () => {
   const from = envelope.value!.getBoundingClientRect();
   const env = flyer.value!.getBoundingClientRect();
   const mini = letter.value!.getBoundingClientRect();
@@ -93,15 +94,8 @@ const play = (reverse: boolean) => {
 
   const all: Animation[] = [];
   const run = (el: HTMLElement | null, frames: Keyframe[], easing = 'ease-in-out') => {
-    const animation = el?.animate(frames, {
-      duration: DURATION,
-      easing,
-      direction: reverse ? 'reverse' : 'normal',
-      fill: 'both',
-    });
-    if (!animation) return;
-    if (reverse) animation.playbackRate = CLOSE_RATE;
-    all.push(animation);
+    const animation = el?.animate(frames, { duration: DURATION, easing, fill: 'both' });
+    if (animation) all.push(animation);
   };
 
   // 信封：从顶栏下那个小信封的位置飞来。
@@ -157,9 +151,22 @@ const play = (reverse: boolean) => {
 };
 
 let busy = false;
+/** 关闭后、信封还没归位的这段时间：顶栏下的信封先藏着。 */
+const away = ref(false);
+let returnTimer: number | undefined;
+
+/** 信封从顶栏后面悄悄滑下来归位。 */
+const slideBack = () => {
+  away.value = false;
+  if (reduced()) return;
+  envelope.value?.animate([
+    { transform: 'translateY(-48px) rotate(-12deg)' },
+    { transform: 'translateY(0) rotate(-12deg)' },
+  ], { duration: 900, easing: 'cubic-bezier(0.25, 0.8, 0.3, 1)' });
+};
 
 const show = async () => {
-  if (!notice.value || busy || open.value) return;
+  if (!notice.value || busy || open.value || away.value) return;
   busy = true;
   open.value = true;
   markRead();
@@ -167,7 +174,7 @@ const show = async () => {
   if (reduced() && flyer.value) flyer.value.hidden = true;
   const done = reduced()
     ? sheet.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).finished
-    : play(false);
+    : play();
   closeButton.value?.focus({ preventScroll: true });
   await done?.catch(() => undefined);
   // 播完收起信封（fill 停在最后一帧时它已经是透明的）。
@@ -176,28 +183,37 @@ const show = async () => {
   busy = false;
 };
 
+/** 关闭：信纸往下滑走、淡出；三秒后信封再归位。 */
 const hide = async () => {
   if (!open.value || busy) return;
   busy = true;
-  if (flyer.value && !reduced()) flyer.value.hidden = false;
-  const done = reduced()
-    ? sheet.value?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).finished
-    : play(true);
+  away.value = true;
+  const quick = reduced();
+  const timing: KeyframeAnimationOptions = { duration: quick ? 120 : 420, easing: 'cubic-bezier(0.5, 0, 0.75, 0.2)', fill: 'forwards' };
+  backdrop.value?.animate([{ opacity: 1 }, { opacity: 0 }], timing);
+  const done = sheet.value?.animate(quick
+    ? [{ opacity: 1 }, { opacity: 0 }]
+    : [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(56px)', opacity: 0 }], timing).finished;
   await done?.catch(() => undefined);
   open.value = false;
   busy = false;
   envelope.value?.focus({ preventScroll: true });
+  window.clearTimeout(returnTimer);
+  returnTimer = window.setTimeout(slideBack, RETURN_DELAY);
 };
 
 const onKey = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && open.value) hide();
 };
 onMounted(() => window.addEventListener('keydown', onKey));
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey);
+  window.clearTimeout(returnTimer);
+});
 </script>
 
 <template>
-  <button v-if="notice" ref="envelope" class="lc-notice-env" :class="{ 'is-unread': unread, 'is-open': open }"
+  <button v-if="notice" ref="envelope" class="lc-notice-env" :class="{ 'is-unread': unread, 'is-open': open || away }"
     type="button" :title="theme.t('notice.open')" :aria-label="`${theme.t('notice.open')}：${title}`" @click="show">
     <svg viewBox="0 0 48 34" aria-hidden="true">
       <rect class="lc-notice-env__paper" x="1" y="1" width="46" height="32" rx="3" />
