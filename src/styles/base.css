@@ -313,8 +313,183 @@ button {
   gap: 8px 16px;
 }
 
-.lc-intro__head .lc-live {
+.lc-intro__aside {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-left: auto;
+}
+
+/* ── 公告信封与信纸 ─────────────────────────────────────── */
+
+/* 斜放的米色信封，上半截压在顶栏下面，隐约发光；指针移上去时往外探一点。 */
+.lc-notice-env {
+  position: relative;
+  z-index: 20;
+  align-self: flex-start;
+  width: 50px;
+  height: 36px;
+  margin-top: calc(-1 * var(--lc-gap) - 15px);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(-12deg);
+  transform-origin: 50% 0;
+  transition: transform 0.25s cubic-bezier(0.22, 0.8, 0.24, 1);
+  animation: lc-notice-glow 4s ease-in-out infinite;
+}
+
+.lc-notice-env.is-unread {
+  animation-duration: 2.6s;
+}
+
+.lc-notice-env:hover,
+.lc-notice-env:focus-visible {
+  transform: rotate(-7deg) translateY(6px);
+  outline: none;
+}
+
+.lc-notice-env:focus-visible svg {
+  outline: 2px solid var(--lc-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.lc-notice-env.is-open {
+  opacity: 0.55;
+}
+
+.lc-notice-env svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lc-notice-env__paper {
+  fill: var(--lc-notice-paper, #f3e5c6);
+  stroke: var(--lc-notice-edge, #cfb487);
+  stroke-width: 1.2;
+}
+
+.lc-notice-env__fold {
+  fill: none;
+  stroke: var(--lc-notice-edge, #cfb487);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.lc-notice-env__flap {
+  fill: color-mix(in srgb, var(--lc-notice-paper, #f3e5c6) 85%, #b08a4e);
+  stroke: var(--lc-notice-edge, #cfb487);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+@keyframes lc-notice-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px var(--lc-notice-glow, rgba(255, 196, 110, 0.35)));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 9px var(--lc-notice-glow, rgba(255, 196, 110, 0.75)));
+  }
+}
+
+.lc-notice {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.lc-notice__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.38);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+/* 信纸：带一点信封的米色。 */
+.lc-notice__sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(40rem, 100%);
+  max-height: min(80vh, 46rem);
+  border: 1px solid color-mix(in srgb, var(--lc-notice-edge, #cfb487) 55%, var(--lc-border));
+  border-radius: var(--lc-radius);
+  background: var(--lc-notice-sheet, var(--lc-surface));
+  box-shadow: var(--lc-shadow-raised), 0 0 40px rgba(255, 196, 110, 0.18);
+  transform-origin: 50% 50%;
+}
+
+.lc-notice__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 12px 24px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--lc-notice-edge, #cfb487) 60%, transparent);
+}
+
+.lc-notice__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--lc-font-display);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.lc-notice__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lc-notice__body {
+  overflow-y: auto;
+  padding: 18px 24px 22px;
+  font-size: 14.5px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+/* 公告比聊天消息长，标题放大一些。 */
+.lc-notice__body.lc-rich :is(h1, h2, h3) {
+  margin: 0.8em 0 0.4em;
+  line-height: 1.35;
+}
+
+.lc-notice__body.lc-rich h1 {
+  font-size: 1.45em;
+}
+
+.lc-notice__body.lc-rich h2 {
+  font-size: 1.25em;
+}
+
+.lc-notice__body.lc-rich h3 {
+  font-size: 1.1em;
+}
+
+/* 手机上不压在顶栏下面，跟标题排在同一行。 */
+@media (max-width: 640px) {
+  .lc-notice-env {
+    align-self: center;
+    width: 40px;
+    height: 29px;
+    margin-top: 0;
+    transform-origin: 50% 50%;
+  }
+
+  .lc-notice-env:hover,
+  .lc-notice-env:focus-visible {
+    transform: rotate(-7deg);
+  }
 }
 
 .lc-intro__title {
@@ -1422,7 +1597,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lc-live__dot {
+  .lc-live__dot,
+  .lc-notice-env {
     animation: none !important;
   }
 

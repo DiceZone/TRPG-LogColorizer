@@ -56,6 +56,12 @@
   --lc-aside-width: 24rem;
   --lc-gap: 20px;                   /* 区块之间的间距 */
   --lc-card-padding: 20px;
+
+  /* 公告：信封与展开后的信纸。 */
+  --lc-notice-paper: #f3e5c6;
+  --lc-notice-edge: #cfb487;
+  --lc-notice-glow: rgba(255, 196, 110, 0.75);
+  --lc-notice-sheet: #fffaf0;
 }
 
 :root.dark {
@@ -88,4 +94,6 @@
   --lc-editor-active-line: #22262e;
   --lc-preview-bg: #1a1d23;
   --lc-preview-time: #6b7280;
+
+  --lc-notice-sheet: #201e1b;
 }

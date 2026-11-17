@@ -108,7 +108,8 @@ pnpm theme:pack path/to/my-theme
 |---|---|
 | `.lc-app` `.lc-header` `.lc-page` `.lc-main` `.lc-aside` `.lc-footer` | 骨架 |
 | `.lc-brand` `__logo` `__name` `__version` | 页眉左侧 |
-| `.lc-intro` `__head` `__title` `__desc` `__notice` | 标题区块；`__head` 是标题与直播状态那一行 |
+| `.lc-intro` `__head` `__aside` `__title` `__desc` `__notice` | 标题区块；`__head` 是标题与直播状态那一行 |
+| `.lc-notice-env` `.is-unread` `__paper` `__flap`，`.lc-notice` `__sheet` `__title` `__body` | 公告信封与展开后的信纸；颜色可用 `--lc-notice-paper` `--lc-notice-edge` `--lc-notice-glow` `--lc-notice-sheet` 覆盖 |
 | `.lc-card` `__head` `__title` `__desc` `__actions` `__body`，以及 `[data-section="<区块>"]` | 区块外框 |
 | `.lc-btn` `--primary` `--small`，`.lc-icon-btn`，`.lc-tag`，`.lc-tabs` `.lc-tab.is-active` `.lc-tab--more` | 控件；`.lc-tab--more` 是「更多」页签 |
 | `.lc-toggle` `.is-on` | 开关按钮（编辑器染色、自动滚动等） |
