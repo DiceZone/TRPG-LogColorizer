@@ -1,0 +1,1250 @@
+/*
+ * 界面的基础样式。只用 tokens.css 里的设计变量取色取尺寸，不写死具体的值；
+ * 类名以 lc- 开头，是主题可以依赖的稳定接口（见 docs/THEME.md）。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--lc-bg);
+  color: var(--lc-text);
+  font-family: var(--lc-font-sans);
+  font-size: var(--lc-font-size);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lc-text-muted) 30%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--lc-text-muted) 50%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--lc-primary);
+  outline-offset: 2px;
+}
+
+/* ── 骨架 ───────────────────────────────────────────────── */
+
+.lc-app.is-pending {
+  visibility: hidden;
+}
+
+.lc-app {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 留给主题的装饰位，默认不占地方。 */
+.lc-deco {
+  display: none;
+  pointer-events: none;
+}
+
+.lc-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--lc-header-height);
+  background: var(--lc-surface);
+  border-bottom: 1px solid var(--lc-border);
+}
+
+.lc-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  max-width: var(--lc-page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--lc-gap);
+}
+
+.lc-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.lc-brand__logo {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  object-fit: contain;
+}
+
+.lc-brand__name {
+  font-family: var(--lc-font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lc-brand__version {
+  flex: none;
+  font-family: var(--lc-font-mono);
+  font-size: 11px;
+  color: var(--lc-text-faint);
+}
+
+.lc-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.lc-header__link {
+  padding: 6px 10px;
+  border-radius: var(--lc-radius-sm);
+  color: var(--lc-text-muted);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.lc-header__link:hover {
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text);
+}
+
+.lc-page {
+  flex: 1;
+  width: 100%;
+  max-width: var(--lc-page-max-width);
+  margin: 0 auto;
+  padding: var(--lc-gap);
+  display: grid;
+  gap: var(--lc-gap);
+  align-content: start;
+}
+
+.lc-page--workspace {
+  grid-template-columns: var(--lc-aside-width) minmax(0, 1fr);
+}
+
+/* 标题区块占满一行；下面侧栏与主区并排，顶端对齐。 */
+.lc-top {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--lc-gap);
+  min-width: 0;
+}
+
+.lc-drawer {
+  min-width: 0;
+}
+
+.lc-drawer__tabs,
+.lc-drawer__scrim {
+  display: none;
+}
+
+.lc-main,
+.lc-aside {
+  display: grid;
+  gap: var(--lc-gap);
+  align-content: start;
+  min-width: 0;
+}
+
+.lc-footer {
+  padding: 16px var(--lc-gap) 28px;
+  color: var(--lc-text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* 窄屏：侧栏收进左侧抽屉，屏幕左缘留几个半透明页签。 */
+@media (max-width: 1080px) {
+  .lc-page--workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lc-drawer {
+    position: fixed;
+    z-index: 35;
+    top: var(--lc-header-height);
+    bottom: 0;
+    left: 0;
+    width: min(26rem, calc(100vw - 52px));
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+
+  .lc-drawer.is-open {
+    transform: none;
+    box-shadow: var(--lc-shadow-raised);
+  }
+
+  .lc-drawer .lc-aside {
+    height: 100%;
+    padding: var(--lc-gap);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--lc-bg);
+    border-right: 1px solid var(--lc-border);
+  }
+
+  /* 抽屉里只显示点开的那个区块。 */
+  .lc-aside[data-active="intro"] > :not([data-section="intro"]),
+  .lc-aside[data-active="characters"] > :not([data-section="characters"]),
+  .lc-aside[data-active="options"] > :not([data-section="options"]),
+  .lc-aside[data-active="export"] > :not([data-section="export"]) {
+    display: none;
+  }
+
+  .lc-drawer__tabs {
+    position: absolute;
+    top: 22vh;
+    left: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .lc-drawer__tab {
+    padding: 12px 7px;
+    border: 1px solid var(--lc-border);
+    border-left: 0;
+    border-radius: 0 var(--lc-radius-sm) var(--lc-radius-sm) 0;
+    background: color-mix(in srgb, var(--lc-surface) 72%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: var(--lc-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    writing-mode: vertical-rl;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+
+  .lc-drawer__tab:hover,
+  .lc-drawer__tab.is-active {
+    opacity: 1;
+    color: var(--lc-primary);
+    background: var(--lc-surface);
+  }
+
+  .lc-drawer__scrim {
+    display: block;
+    position: fixed;
+    z-index: 30;
+    inset: var(--lc-header-height) 0 0 0;
+    background: rgba(15, 23, 42, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  .has-drawer .lc-drawer__scrim {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ── 区块 ───────────────────────────────────────────────── */
+
+.lc-intro__title {
+  font-family: var(--lc-font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.lc-intro__desc {
+  margin-top: 6px;
+  color: var(--lc-text-muted);
+}
+
+.lc-intro__notice {
+  margin-top: 8px;
+  color: var(--lc-primary);
+  font-size: 13px;
+}
+
+.lc-card {
+  min-width: 0;
+  background: var(--lc-surface);
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius);
+  box-shadow: var(--lc-shadow);
+}
+
+.lc-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--lc-card-padding) var(--lc-card-padding) 16px;
+}
+
+.lc-card__heading {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.lc-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--lc-font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lc-card__desc {
+  margin-top: 4px;
+  color: var(--lc-text-muted);
+  font-size: 13px;
+}
+
+.lc-card__actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.lc-card__body {
+  padding: 0 var(--lc-card-padding) var(--lc-card-padding);
+}
+
+.lc-chevron {
+  transition: transform 0.15s ease;
+}
+
+.lc-card[data-expanded="true"] .lc-chevron {
+  transform: rotate(180deg);
+}
+
+/* ── 控件 ───────────────────────────────────────────────── */
+
+.lc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--lc-border-strong);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-surface);
+  color: var(--lc-text);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.lc-btn:hover {
+  background: var(--lc-surface-sunken);
+}
+
+.lc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lc-btn--small {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.lc-btn--block {
+  width: 100%;
+}
+
+.lc-btn--primary {
+  border-color: var(--lc-primary);
+  background: var(--lc-primary);
+  color: var(--lc-primary-contrast);
+}
+
+.lc-btn--primary:hover {
+  border-color: var(--lc-primary-hover);
+  background: var(--lc-primary-hover);
+}
+
+.lc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--lc-radius-sm);
+  background: transparent;
+  color: var(--lc-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lc-icon-btn:hover {
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text);
+}
+
+.lc-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lc-icon-btn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+.lc-icon-btn--danger:hover:not(:disabled) {
+  color: var(--lc-danger);
+}
+
+.lc-tag.lc-tag--primary {
+  background: var(--lc-primary-soft);
+  color: var(--lc-primary);
+}
+
+.lc-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+/* 开关按钮：按下即开启。代替勾选框。 */
+.lc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--lc-border-strong);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-surface);
+  color: var(--lc-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.lc-toggle:hover {
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text);
+}
+
+.lc-toggle__mark {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  opacity: 0.35;
+}
+
+.lc-toggle.is-on {
+  border-color: color-mix(in srgb, var(--lc-primary) 45%, transparent);
+  background: var(--lc-primary-soft);
+  color: var(--lc-primary);
+}
+
+.lc-toggle.is-on .lc-toggle__mark {
+  opacity: 1;
+}
+
+.lc-empty {
+  padding: 20px 8px;
+  color: var(--lc-text-faint);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* 页签：一条槽里的几个选项，选中的浮起来。 */
+.lc-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-surface-sunken);
+}
+
+.lc-tab {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(var(--lc-radius-sm) - 2px);
+  background: transparent;
+  color: var(--lc-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lc-tab:hover {
+  color: var(--lc-text);
+}
+
+.lc-tab.is-active {
+  background: var(--lc-surface);
+  color: var(--lc-text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+/* ── 渲染选项 ───────────────────────────────────────────── */
+
+.lc-options {
+  display: grid;
+  gap: 2px;
+}
+
+.lc-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border-radius: var(--lc-radius-sm);
+  cursor: pointer;
+}
+
+.lc-option:hover {
+  background: var(--lc-surface-sunken);
+}
+
+.lc-option__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.lc-option__desc {
+  display: block;
+  margin-top: 1px;
+  color: var(--lc-text-muted);
+  font-size: 12px;
+}
+
+/* ── 头像 ───────────────────────────────────────────────── */
+
+.lc-avatar {
+  --lc-avatar-size: 36px;
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--lc-avatar-size);
+  height: var(--lc-avatar-size);
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--lc-avatar-color, var(--lc-text-faint));
+  color: #fff;
+  font-size: calc(var(--lc-avatar-size) * 0.42);
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.lc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--lc-surface-sunken);
+}
+
+/* ── 头像裁剪 ───────────────────────────────────────────── */
+
+.lc-cropper__hint {
+  margin-bottom: 12px;
+  color: var(--lc-text-muted);
+  font-size: 12.5px;
+}
+
+.lc-cropper__frame {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--lc-radius-sm);
+  background:
+    repeating-conic-gradient(var(--lc-surface-sunken) 0% 25%, var(--lc-surface) 0% 50%) 0 0 / 16px 16px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.lc-cropper__frame:active {
+  cursor: grabbing;
+}
+
+.lc-cropper__frame img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* 圆形以外压暗，示意头像显示出来的样子。 */
+.lc-cropper__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(15, 23, 42, 0.45);
+  outline: 2px dashed rgba(255, 255, 255, 0.85);
+  outline-offset: -2px;
+  pointer-events: none;
+}
+
+.lc-cropper__zoom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--lc-text-muted);
+}
+
+.lc-cropper__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ── 角色列表 ───────────────────────────────────────────── */
+
+.lc-chars {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lc-char {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "avatar name menu"
+    "avatar meta meta"
+    "linked linked linked";
+  align-items: center;
+  gap: 2px 12px;
+  padding: 10px 8px 10px 12px;
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-surface);
+  transition: border-color 0.15s ease;
+}
+
+.lc-char:hover {
+  border-color: color-mix(in srgb, var(--lc-char-color, var(--lc-border-strong)) 45%, var(--lc-border));
+}
+
+.lc-chars__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.lc-chars__hint,
+.lc-chars__note {
+  color: var(--lc-text-faint);
+  font-size: 12px;
+}
+
+.lc-chars__note {
+  margin-top: 10px;
+}
+
+/* 头像外圈一道角色颜色；点它可以换成自己的图片。 */
+.lc-char__avatar {
+  grid-area: avatar;
+  align-self: start;
+  position: relative;
+  display: inline-flex;
+  margin: 2px 0 0 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  box-shadow: 0 0 0 2px var(--lc-surface), 0 0 0 4px var(--lc-char-color, var(--lc-border-strong));
+  cursor: pointer;
+}
+
+.lc-char__avatar-edit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.lc-char__avatar:hover .lc-char__avatar-edit,
+.lc-char__avatar:focus-visible .lc-char__avatar-edit {
+  opacity: 1;
+}
+
+.lc-char__avatar-edit svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lc-char__name {
+  grid-area: name;
+  min-width: 0;
+  margin-left: -8px;
+  font-weight: 600;
+}
+
+.lc-char__name.n-input {
+  --n-color: transparent !important;
+  --n-color-focus: var(--lc-surface-sunken) !important;
+  --n-color-disabled: transparent !important;
+  --n-text-color: var(--lc-char-color, var(--lc-text)) !important;
+  --n-text-color-disabled: var(--lc-char-color, var(--lc-text)) !important;
+  --n-font-size: 14px !important;
+}
+
+.lc-char__name.n-input:not(.n-input--disabled):hover {
+  --n-color: var(--lc-surface-sunken) !important;
+}
+
+.lc-char__menu {
+  grid-area: menu;
+  min-width: 30px;
+  height: 30px;
+}
+
+.lc-char__meta {
+  grid-area: meta;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lc-char__id {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--lc-text-faint);
+  font-family: var(--lc-font-mono);
+  font-size: 11.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lc-char__role {
+  flex: none;
+  width: 88px;
+}
+
+/* 颜色只留一个色块，点开再选。 */
+.lc-char__color.n-color-picker {
+  flex: none;
+  width: 28px;
+}
+
+.lc-char__color .n-color-picker-trigger__value {
+  display: none;
+}
+
+.lc-char__color .n-color-picker-trigger {
+  --n-height: 28px !important;
+}
+
+.lc-char.is-linked {
+  background: var(--lc-surface-sunken);
+}
+
+.lc-char.is-hidden .lc-char__avatar {
+  opacity: 0.45;
+}
+
+.lc-char__linked {
+  grid-area: linked;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--lc-border);
+  color: var(--lc-text-muted);
+  font-size: 12.5px;
+}
+
+.lc-char__linked svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--lc-char-color, var(--lc-primary));
+}
+
+.lc-char__linked span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lc-link-btn {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lc-primary);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.lc-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* 单栏版面下角色排成两列。 */
+[data-layout="stack"] .lc-chars {
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+}
+
+/* ── 编辑器与预览 ───────────────────────────────────────── */
+
+.lc-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.lc-editor-toolbar__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* 日志区：右下角浮着一个「跳到最新」。 */
+.lc-log-area {
+  position: relative;
+}
+
+.lc-jump {
+  position: absolute;
+  z-index: 5;
+  right: 18px;
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--lc-border);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--lc-surface) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--lc-shadow-raised);
+  color: var(--lc-text-muted);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.lc-jump:hover {
+  opacity: 1;
+  color: var(--lc-primary);
+}
+
+.lc-jump svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* 回声工坊上方的介绍。 */
+.lc-trg-intro {
+  margin-bottom: 10px;
+  color: var(--lc-text-muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.preview {
+  position: relative;
+  padding: 14px 16px;
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius);
+  background: var(--lc-preview-bg);
+  font-family: var(--lc-preview-font);
+  font-size: var(--lc-preview-font-size);
+  line-height: var(--lc-preview-line-height);
+  word-break: break-all;
+}
+
+.preview ._time {
+  margin-right: 0.5em;
+  color: var(--lc-preview-time) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.list-dynamic {
+  width: 100%;
+  overflow-y: auto;
+}
+
+.scroller {
+  height: var(--lc-editor-height);
+}
+
+.list-item-dynamic {
+  padding: 0.3em 0;
+}
+
+/* 预览组件里沿用的两个小工具类。 */
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  color: var(--lc-text-muted);
+}
+
+/* ── 聊天视图 ───────────────────────────────────────────── */
+
+.lc-chat {
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius);
+  background: var(--lc-chat-bg, var(--lc-preview-bg));
+  overflow: hidden;
+}
+
+.lc-chat__list {
+  overflow-y: auto;
+  padding: 8px 0 16px;
+}
+
+.lc-msg {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px 0;
+}
+
+.lc-msg.is-continued {
+  padding-top: 4px;
+}
+
+.lc-msg__avatar {
+  --lc-avatar-size: 38px;
+  margin-top: 2px;
+}
+
+/* 连续发言省掉头像，空出来的位置在悬停时显示时刻。 */
+.lc-msg__gutter {
+  flex: none;
+  width: 38px;
+  padding-top: 7px;
+  color: transparent;
+  font-family: var(--lc-font-mono);
+  font-size: 10.5px;
+  text-align: center;
+}
+
+.lc-msg:hover .lc-msg__gutter {
+  color: var(--lc-text-faint);
+}
+
+.lc-msg__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: min(46rem, 100%);
+}
+
+.lc-msg__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+}
+
+.lc-msg__name {
+  color: var(--lc-char-color, var(--lc-text-muted));
+  font-weight: 600;
+}
+
+.lc-msg__badge {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lc-char-color, var(--lc-primary)) 14%, transparent);
+  color: var(--lc-char-color, var(--lc-primary));
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.lc-msg__id,
+.lc-msg__time {
+  color: var(--lc-text-faint);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lc-msg__id {
+  margin-left: -4px;
+  font-family: var(--lc-font-mono);
+  font-size: 11px;
+}
+
+/* 换了一天：居中一枚日期徽章。 */
+.lc-chat__date {
+  display: flex;
+  justify-content: center;
+  padding: 14px 16px 4px;
+}
+
+.lc-chat__date span {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--lc-surface-sunken);
+  color: var(--lc-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 骰娘的消息靠右，像群聊里自己发的。 */
+.lc-msg.is-dice {
+  flex-direction: row-reverse;
+}
+
+.lc-msg.is-dice .lc-msg__body {
+  align-items: flex-end;
+}
+
+.lc-msg.is-dice .lc-msg__meta {
+  flex-direction: row-reverse;
+}
+
+.lc-msg.is-dice .lc-msg__id {
+  margin-left: 0;
+  margin-right: -4px;
+}
+
+.lc-msg.is-dice .lc-msg__bubble {
+  border-radius: 14px 4px 14px 14px;
+}
+
+.lc-msg.is-dice.is-continued .lc-msg__bubble {
+  border-radius: 14px;
+}
+
+.lc-msg__bubble {
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px 14px 14px 14px;
+  background: var(--lc-chat-bubble, var(--lc-surface-sunken));
+  color: var(--lc-text);
+  font-family: var(--lc-preview-font);
+  font-size: var(--lc-preview-font-size);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.lc-msg.is-continued .lc-msg__bubble {
+  border-radius: 14px;
+}
+
+/* 骰子的回复带一点角色颜色，一眼看得出是检定结果。 */
+.lc-msg.is-dice .lc-msg__bubble {
+  background: color-mix(in srgb, var(--lc-char-color, var(--lc-primary)) 10%, var(--lc-surface));
+  border: 1px solid color-mix(in srgb, var(--lc-char-color, var(--lc-primary)) 28%, transparent);
+}
+
+.lc-msg__bubble img {
+  display: block;
+  max-width: min(260px, 100%) !important;
+  height: auto;
+  margin: 2px 0;
+  border-radius: 8px;
+}
+
+/* ── 导出 ───────────────────────────────────────────────── */
+
+.lc-export {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 8px;
+}
+
+/* ── 实时日志的状态 ─────────────────────────────────────── */
+
+.lc-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--lc-border);
+  border-radius: 999px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.lc-live__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lc-text-faint);
+}
+
+.lc-live[data-status="live"] .lc-live__dot {
+  background: var(--lc-live);
+  animation: lc-pulse 1.6s ease-in-out infinite;
+}
+
+.lc-live[data-status="retrying"] .lc-live__dot,
+.lc-live[data-status="connecting"] .lc-live__dot {
+  background: var(--lc-warning);
+}
+
+.lc-live__label {
+  font-weight: 600;
+}
+
+.lc-live__count {
+  color: var(--lc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lc-live .lc-toggle {
+  height: 22px;
+  margin-right: -6px;
+  padding: 0 8px 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+@keyframes lc-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-live__dot {
+    animation: none !important;
+  }
+
+  .lc-drawer,
+  .lc-drawer__scrim {
+    transition: none !important;
+  }
+
+  .lc-chevron {
+    transition: none;
+  }
+}
+
+/* ── 窄屏 ───────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  :root {
+    --lc-gap: 12px;
+    --lc-card-padding: 14px;
+  }
+
+  .lc-brand__version,
+  .lc-icon-btn--text span,
+  .lc-live__count {
+    display: none;
+  }
+
+  .lc-card__actions {
+    width: 100%;
+  }
+
+  .lc-tabs {
+    width: 100%;
+  }
+
+  .lc-tab {
+    flex: 1;
+    padding: 0 6px;
+  }
+
+  .lc-editor-toolbar__toggles {
+    margin-left: 0;
+  }
+
+  .lc-msg__id {
+    display: none;
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "engine": 1,
+  "id": "terminal",
+  "name": "终端",
+  "version": "1.0.0",
+  "author": "TRPG-LogColorizer",
+  "description": "等宽字体与绿色荧光，只有深色",
+  "modes": ["dark"],
+  "layout": "workspace",
+  "tokens": {
+    "dark": {
+      "--lc-bg": "#080b09",
+      "--lc-surface": "#0d1310",
+      "--lc-surface-raised": "#111a15",
+      "--lc-surface-sunken": "#0a0f0c",
+      "--lc-text": "#cfe9d6",
+      "--lc-text-muted": "#7fa38a",
+      "--lc-text-faint": "#4f6b58",
+      "--lc-border": "#1c2a21",
+      "--lc-border-strong": "#2b4133",
+      "--lc-primary": "#5fdc8e",
+      "--lc-primary-hover": "#7de8a5",
+      "--lc-primary-pressed": "#48c478",
+      "--lc-primary-contrast": "#06110a",
+      "--lc-primary-soft": "#12261a",
+      "--lc-danger": "#ff7a59",
+      "--lc-live": "#ff5f56",
+      "--lc-input-bg": "#0a0f0c",
+      "--lc-editor-bg": "#0a0f0c",
+      "--lc-editor-text": "#cfe9d6",
+      "--lc-editor-gutter-bg": "#0d1310",
+      "--lc-editor-gutter-border": "#1c2a21",
+      "--lc-editor-active-line": "#111a15",
+      "--lc-preview-bg": "#0a0f0c",
+      "--lc-preview-time": "#4f6b58",
+      "--lc-radius": "0px",
+      "--lc-radius-sm": "0px"
+    }
+  },
+  "strings": {
+    "intro.title": "LOG PROCESSOR",
+    "intro.desc": "粘贴或导入跑团日志 // 自动识别角色并染色",
+    "editor.title": "LOG // 日志",
+    "characters.title": "ENTITY // 角色",
+    "options.title": "RENDER // 渲染选项",
+    "export.title": "EXPORT // 导出"
+  },
+  "palette": ["#5fdc8e", "#59c2ff", "#ffb454", "#f07178", "#c792ea", "#9aa5a0", "#e6db74"]
+}

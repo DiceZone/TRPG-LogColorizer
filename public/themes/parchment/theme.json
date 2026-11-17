@@ -1,0 +1,47 @@
+{
+  "engine": 1,
+  "id": "parchment",
+  "name": "羊皮纸",
+  "version": "1.0.0",
+  "author": "TRPG-LogColorizer",
+  "description": "暖色纸张与衬线字体，单栏版面，只有亮色",
+  "modes": ["light"],
+  "layout": "stack",
+  "sections": ["intro", "editor", "characters", "options", "export"],
+  "tokens": {
+    "light": {
+      "--lc-bg": "#eadfc8",
+      "--lc-surface": "#f7f0df",
+      "--lc-surface-raised": "#fbf6e9",
+      "--lc-surface-sunken": "#ede2c9",
+      "--lc-text": "#3a2e21",
+      "--lc-text-muted": "#75654f",
+      "--lc-text-faint": "#a4937a",
+      "--lc-border": "#d8c8a6",
+      "--lc-border-strong": "#bfab83",
+      "--lc-primary": "#8a3a1c",
+      "--lc-primary-hover": "#732f15",
+      "--lc-primary-pressed": "#5e2610",
+      "--lc-primary-contrast": "#fbf6e9",
+      "--lc-primary-soft": "#ecd9c4",
+      "--lc-input-bg": "#fbf6e9",
+      "--lc-editor-bg": "#fbf6e9",
+      "--lc-editor-text": "#3a2e21",
+      "--lc-editor-gutter-bg": "#ede2c9",
+      "--lc-editor-gutter-border": "#d8c8a6",
+      "--lc-editor-active-line": "#f1e7d0",
+      "--lc-preview-bg": "#fbf6e9",
+      "--lc-preview-time": "#a4937a",
+      "--lc-radius": "3px",
+      "--lc-radius-sm": "2px",
+      "--lc-page-max-width": "1040px",
+      "--lc-preview-font-size": "16px",
+      "--lc-preview-line-height": "1.9"
+    }
+  },
+  "strings": {
+    "intro.title": "跑团记录誊抄",
+    "intro.desc": "把跑团日志贴进来，按角色着色，誊成一份便于阅读与存档的记录。"
+  },
+  "palette": ["#8a3a1c", "#2f5d50", "#3d4f7d", "#7a4b8c", "#946b1d", "#5a5a5a", "#a13d63"]
+}

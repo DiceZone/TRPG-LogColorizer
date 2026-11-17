@@ -1,0 +1,8 @@
+{
+  "engine": 1,
+  "id": "default",
+  "name": "默认",
+  "version": "1.0.0",
+  "description": "与 Dice!Next 管理面板一致的配色与版式，支持亮色与深色",
+  "layout": "workspace"
+}

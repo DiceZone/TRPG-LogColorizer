@@ -1,0 +1,40 @@
+/* 羊皮纸：衬线字体、纸张底色、细双线边框。只改外观，不动结构。 */
+:root[data-theme="parchment"] {
+  --lc-font-sans: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', Georgia, 'Times New Roman', serif;
+  --lc-font-display: var(--lc-font-sans);
+  --lc-preview-font: var(--lc-font-sans);
+  --lc-shadow: none;
+}
+
+/* 纸张上若有若无的纹理，用渐变叠出来，不依赖图片。 */
+[data-theme="parchment"] body {
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 85% 90%, rgba(120, 90, 40, 0.08), transparent 50%);
+  background-attachment: fixed;
+}
+
+[data-theme="parchment"] .lc-header {
+  border-bottom: 3px double var(--lc-border-strong);
+  background: transparent;
+}
+
+[data-theme="parchment"] .lc-card {
+  border: 1px solid var(--lc-border-strong);
+  outline: 1px solid var(--lc-border);
+  outline-offset: 3px;
+}
+
+[data-theme="parchment"] .lc-intro {
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+[data-theme="parchment"] .lc-intro__title {
+  font-size: 28px;
+  letter-spacing: 0.12em;
+}
+
+[data-theme="parchment"] .lc-card__title {
+  letter-spacing: 0.06em;
+}

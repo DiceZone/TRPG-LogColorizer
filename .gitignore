@@ -1,0 +1,26 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+
+# lock
+yarn.lock
+package-lock.json
+
+*.log
+
+/.vscode
+/.idea
+story-painter-dz.zip
+
+# vite temp
+vite.config.ts.timestamp-*.mjs
+
+# local env (may contain secrets)
+.env
+.env.local
+.env.*.local
+themes/
+!public/themes/
+*.zip

@@ -1,0 +1,16 @@
+services:
+  colorizer:
+    build: .
+    image: trpg-logcolorizer:local
+    container_name: trpg-logcolorizer
+    restart: unless-stopped
+    environment:
+      # 日志后端的读取接口；实时日志接口默认由它推出（…/api/v2）
+      LOG_API_BASE: https://log-api.dice.zone/api/dice
+      # 站点使用的主题，填 themes/ 下的目录名
+      LOG_THEME: default
+    volumes:
+      # 自己的主题放在 ./themes/<id>/ 下，重启容器即生效
+      - ./themes:/themes:ro
+    ports:
+      - "127.0.0.1:8080:80"

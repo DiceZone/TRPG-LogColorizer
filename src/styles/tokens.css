@@ -1,0 +1,90 @@
+/*
+ * 设计变量。主题通过改写这些变量来换肤；完整说明见 docs/THEME.md。
+ * 这里的值是内置的默认样式（与 Dice!Next 管理面板的配色、圆角、字号一致），
+ * 没有载入任何主题时也能正常显示。
+ */
+:root {
+  /* ── 颜色 ── */
+  --lc-bg: #f6f7f9;                 /* 页面背景 */
+  --lc-surface: #ffffff;            /* 卡片、页眉的底色 */
+  --lc-surface-raised: #ffffff;     /* 浮层（菜单、提示）的底色 */
+  --lc-surface-sunken: #f0f2f4;     /* 凹下去的区域：页签槽、角色行 */
+  --lc-text: #252a37;               /* 正文 */
+  --lc-text-muted: #6b7280;         /* 说明文字 */
+  --lc-text-faint: #9ca3af;         /* 更淡的辅助文字、占位符 */
+  --lc-border: #dfe2e7;             /* 分隔线、卡片边框 */
+  --lc-border-strong: #d1d4dc;      /* 输入框、按钮边框 */
+  --lc-primary: #3a3dee;            /* 主色 */
+  --lc-primary-hover: #4e51f0;
+  --lc-primary-pressed: #2f32d6;
+  --lc-primary-contrast: #ffffff;   /* 主色上面的文字 */
+  --lc-primary-soft: #eeeefd;       /* 主色的浅底：选中项、标签 */
+  --lc-danger: #ef4444;
+  --lc-success: #16a34a;
+  --lc-warning: #d97706;
+  --lc-live: #dc2626;               /* 直播指示点 */
+  --lc-input-bg: #ffffff;
+  --lc-shadow: none;
+  --lc-shadow-raised: 0 10px 30px rgba(15, 23, 42, 0.12);
+
+  /* ── 编辑器与预览 ── */
+  --lc-editor-bg: #ffffff;
+  --lc-editor-text: #252a37;
+  --lc-editor-gutter-bg: #f6f7f9;
+  --lc-editor-gutter-border: #dfe2e7;
+  --lc-editor-active-line: #f3f4f6;
+  --lc-editor-height: clamp(26rem, calc(100vh - 15rem), 60rem);
+  --lc-editor-font-size: 15px;
+  --lc-preview-bg: #ffffff;
+  --lc-preview-time: #9ca3af;       /* 预览里时间戳的颜色 */
+  --lc-preview-font: var(--lc-font-sans);
+  --lc-preview-font-size: 15px;
+  --lc-preview-line-height: 1.75;
+
+  /* ── 字体 ── */
+  --lc-font-sans: Inter, system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --lc-font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', 'Microsoft YaHei UI', monospace;
+  --lc-font-display: var(--lc-font-sans);   /* 标题 */
+  --lc-font-size: 14px;
+
+  /* ── 形状与尺寸 ── */
+  --lc-radius: 12px;                /* 卡片 */
+  --lc-radius-sm: 8px;              /* 按钮、输入框 */
+  --lc-header-height: 64px;
+  --lc-page-max-width: 1480px;
+  --lc-aside-width: 24rem;
+  --lc-gap: 20px;                   /* 区块之间的间距 */
+  --lc-card-padding: 20px;
+}
+
+:root.dark {
+  --lc-bg: #13151b;
+  --lc-surface: #1a1d23;
+  --lc-surface-raised: #1e2229;
+  --lc-surface-sunken: #22262e;
+  --lc-text: #ebecef;
+  --lc-text-muted: #9da3af;
+  --lc-text-faint: #6b7280;
+  --lc-border: #31353f;
+  --lc-border-strong: #3e4451;
+  --lc-primary: #6366f1;
+  --lc-primary-hover: #7477f3;
+  --lc-primary-pressed: #5254e0;
+  --lc-primary-contrast: #ffffff;
+  --lc-primary-soft: #23264a;
+  --lc-danger: #f87171;
+  --lc-success: #4ade80;
+  --lc-warning: #fbbf24;
+  --lc-live: #f87171;
+  --lc-input-bg: #1a1d23;
+  --lc-shadow: none;
+  --lc-shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  --lc-editor-bg: #1a1d23;
+  --lc-editor-text: #ebecef;
+  --lc-editor-gutter-bg: #16191f;
+  --lc-editor-gutter-border: #31353f;
+  --lc-editor-active-line: #22262e;
+  --lc-preview-bg: #1a1d23;
+  --lc-preview-time: #6b7280;
+}
