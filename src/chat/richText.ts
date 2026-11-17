@@ -1,4 +1,4 @@
-// 聊天视图里骰娘消息的 Markdown 与 LaTeX 公式渲染。
+// 聊天视图消息与站点公告的 Markdown 与 LaTeX 公式渲染。
 // markdown-it 与 KaTeX 加起来有几百 KB，只在第一次打开聊天视图时才载入；
 // 载入完成前，消息先按普通文字显示。
 import MarkdownIt from 'markdown-it';
@@ -7,8 +7,9 @@ import 'katex/dist/katex.min.css';
 import { findMath } from '~/utils/texMath';
 
 const md = new MarkdownIt({ html: false, breaks: true, linkify: true });
-// 骰娘回复常用空格缩进排版，不当成代码块。
-md.disable('code');
+// 骰娘回复常用空格缩进排版，不当成代码块；
+// 「结果」下一行接「---」分隔线也很常见，不当成标题（setext 标题）。
+md.disable(['code', 'lheading']);
 
 const renderLink = md.renderer.rules.link_open
   ?? ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
@@ -48,6 +49,10 @@ export function renderRich(raw: string, renderCode: (code: string) => string): s
   };
 
   let text = raw.replace(CODE, (code) => hold(renderCode(code)));
+  // 引用只到换行为止：Markdown 会把引用下一行的普通文字也接进引用里（延续行），
+  // 聊天消息里一行就是一行，所以在引用与紧跟的普通行之间断开。
+  text = text.replace(/^(>[^\n]*)\n(?=[^>\n])/gm, '$1\n\n');
+
   const segments = findMath(text);
   if (segments.length) {
     let out = '';

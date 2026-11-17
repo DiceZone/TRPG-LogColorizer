@@ -319,8 +319,8 @@ function createWorkspace() {
       const pc = store.resolvePc(i);
       const linked = pc && store.pcLinks[packNameId(i)] ? pc : null;
       let shown: LogItem = linked ? { ...i, nickname: linked.name, IMUserId: linked.IMUserId } : i;
-      // 公式过滤：骰娘消息里的公式换成纯文字，聊天、预览与导出都用这一份。
-      if (store.exportOptions.mathHide && (i.isDice || pc?.role === '骰子')) {
+      // 公式过滤：消息里的公式换成纯文字，聊天、预览与导出都用这一份。
+      if (store.exportOptions.mathHide) {
         const message = stripMath(shown.message);
         if (message !== shown.message) shown = { ...shown, message };
       }

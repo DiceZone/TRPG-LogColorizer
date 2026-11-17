@@ -1233,49 +1233,49 @@ button {
   border-radius: 8px;
 }
 
-/* 骰娘消息的 Markdown：段落之间留一点距离，标题、列表、引用都收得紧凑些。 */
-.lc-msg__bubble.is-rich > :first-child {
+/* Markdown 内容（聊天消息与公告）：段落之间留一点距离，标题、列表、引用都收得紧凑些。 */
+.lc-rich > :first-child {
   margin-top: 0;
 }
 
-.lc-msg__bubble.is-rich > :last-child {
+.lc-rich > :last-child {
   margin-bottom: 0;
 }
 
-.lc-msg__bubble.is-rich :is(p, ul, ol, blockquote, pre, table) {
+.lc-rich :is(p, ul, ol, blockquote, pre, table) {
   margin: 0 0 0.5em;
 }
 
-.lc-msg__bubble.is-rich :is(h1, h2, h3, h4, h5, h6) {
+.lc-rich :is(h1, h2, h3, h4, h5, h6) {
   margin: 0.4em 0 0.3em;
   font-size: 1.05em;
   font-weight: 650;
   line-height: 1.4;
 }
 
-.lc-msg__bubble.is-rich h1 {
+.lc-rich h1 {
   font-size: 1.2em;
 }
 
-.lc-msg__bubble.is-rich :is(ul, ol) {
+.lc-rich :is(ul, ol) {
   padding-left: 1.4em;
 }
 
-.lc-msg__bubble.is-rich ul {
+.lc-rich ul {
   list-style: disc;
 }
 
-.lc-msg__bubble.is-rich ol {
+.lc-rich ol {
   list-style: decimal;
 }
 
-.lc-msg__bubble.is-rich blockquote {
+.lc-rich blockquote {
   padding-left: 0.75em;
   border-left: 3px solid color-mix(in srgb, var(--lc-char-color, var(--lc-primary)) 45%, transparent);
   color: var(--lc-text-muted);
 }
 
-.lc-msg__bubble.is-rich code {
+.lc-rich code {
   padding: 0.1em 0.35em;
   border-radius: 4px;
   background: color-mix(in srgb, var(--lc-text) 8%, transparent);
@@ -1283,54 +1283,50 @@ button {
   font-size: 0.9em;
 }
 
-.lc-msg__bubble.is-rich pre {
+.lc-rich pre {
   overflow-x: auto;
   padding: 8px 10px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--lc-text) 6%, transparent);
 }
 
-.lc-msg__bubble.is-rich pre code {
+.lc-rich pre code {
   padding: 0;
   background: none;
 }
 
-.lc-msg__bubble.is-rich hr {
+.lc-rich hr {
   margin: 0.6em 0;
   border: 0;
   border-top: 1px solid var(--lc-border);
 }
 
-.lc-msg__bubble.is-rich a {
+.lc-rich a {
   color: var(--lc-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.lc-msg__bubble.is-rich table {
+.lc-rich table {
   border-collapse: collapse;
   font-size: 0.95em;
 }
 
-.lc-msg__bubble.is-rich :is(th, td) {
+.lc-rich :is(th, td) {
   padding: 2px 8px;
   border: 1px solid var(--lc-border);
 }
 
-/* 公式：独占一段的靠左排，太宽时可以横向滚动，不撑破气泡。 */
-.lc-msg__bubble.is-rich .katex {
+/* 公式：独占一段的居中排，太宽时可以横向滚动，不撑破气泡；行内公式跟着文字靠左。 */
+.lc-rich .katex {
   font-size: 1.05em;
 }
 
-.lc-msg__bubble.is-rich .katex-display {
-  margin: 0.25em 0;
+.lc-rich .katex-display {
+  margin: 0.35em 0;
   overflow-x: auto;
   overflow-y: hidden;
-  text-align: left;
-}
-
-.lc-msg__bubble.is-rich .katex-display > .katex {
-  text-align: left;
+  text-align: center;
 }
 
 /* ── 导出 ───────────────────────────────────────────────── */

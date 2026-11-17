@@ -68,13 +68,20 @@ const renderCode = (code: string) => msgImageFormat(escapeHTML(code), store.expo
   .replace(/\[CQ:(?!image|at).+?,[^\]]+\]/g, '')
   .replace(/\[mirai:(?!image).+?:[^\]]+\]/g, '');
 
-/** 骰娘的消息按 Markdown 显示，公式用 KaTeX 排版。 */
-const diceHtml = computed(() => {
+/**
+ * 消息按 Markdown 显示，公式用 KaTeX 排版。
+ * 不只骰娘：群里另一个骰娘（如 QQ 官方机器人）在日志里常被记成普通成员，同样会发 Markdown。
+ */
+const richHtml = computed(() => {
   const render = rich.value;
-  if (!render || !isDice.value) return null;
+  if (!render) return null;
   const options = store.exportOptions;
   let raw = props.source.message;
-  for (const p of store.pcList) raw = raw.replaceAll(`<${p.name}>`, p.name);
+  if (isDice.value) {
+    for (const p of store.pcList) raw = raw.replaceAll(`<${p.name}>`, p.name);
+  } else {
+    raw = msgOffTopicFormat(raw, options, false);
+  }
   if (options.imageHide) raw = stripQQOfficialFaces(raw);
   raw = msgCommandFormat(raw, options);
   raw = msgAtFormat(raw, store.pcList);
@@ -83,7 +90,7 @@ const diceHtml = computed(() => {
 });
 
 const html = computed(() => {
-  if (diceHtml.value !== null) return diceHtml.value;
+  if (richHtml.value !== null) return richHtml.value;
   const item = props.source;
   const options = store.exportOptions;
   let msg = msgImageFormat(escapeHTML(item.message), options, true);
@@ -113,7 +120,7 @@ const html = computed(() => {
           <span v-if="role === '主持人'" class="lc-msg__badge">主持人</span>
           <span v-if="time" class="lc-msg__time">{{ time }}</span>
         </div>
-        <div class="lc-msg__bubble" :class="{ 'is-rich': diceHtml !== null }" v-html="html"></div>
+        <div class="lc-msg__bubble" :class="{ 'lc-rich': richHtml !== null }" v-html="html"></div>
       </div>
     </div>
   </div>

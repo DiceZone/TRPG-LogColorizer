@@ -116,7 +116,7 @@ pnpm theme:pack path/to/my-theme
 | `.lc-char` `__avatar` `__name` `__eye` `__meta` `.is-linked` `.is-hidden`（颜色取 `--lc-char-color`） | 角色卡；`__eye` 是隐藏发言的开关 |
 | `.lc-avatar`（`--lc-avatar-size` `--lc-avatar-color`） | 头像 |
 | `.lc-drawer` `.lc-drawer__tab` | 窄屏时的侧栏抽屉与左缘页签 |
-| `.lc-chat` `.lc-chat__date` `.lc-msg` `__avatar` `__name` `__id` `__time` `__bubble`（骰娘的 Markdown 消息另有 `.is-rich`），`.is-continued` `.is-dice` `.is-host` | 聊天视图的一条消息 |
+| `.lc-chat` `.lc-chat__date` `.lc-msg` `__avatar` `__name` `__id` `__time` `__bubble`（按 Markdown 显示时另有 `.lc-rich`），`.is-continued` `.is-dice` `.is-host` | 聊天视图的一条消息 |
 | `.lc-live` 与 `[data-status="connecting|live|retrying|paused|ended"]`，`__dot` `__control` | 实时日志的状态标记；`__control` 是暂停／恢复直播 |
 | `.preview` `.list-item-dynamic` `._time` `._nickname` `._message` | 预览里的一条消息 |
 | `.lc-deco--backdrop` `.lc-deco--top` `.lc-deco--bottom` | 留给主题做装饰的空元素，默认不显示 |
