@@ -11,6 +11,9 @@ importers:
       '@babel/runtime':
         specifier: ^7.24.0
         version: 7.26.0
+      '@codemirror/autocomplete':
+        specifier: ^6.18.2
+        version: 6.18.2(@codemirror/language@6.10.3)(@codemirror/state@6.4.1)(@codemirror/view@6.34.2)(@lezer/common@1.2.3)
       '@codemirror/commands':
         specifier: ^6.7.1
         version: 6.7.1

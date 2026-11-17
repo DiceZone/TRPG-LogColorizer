@@ -517,7 +517,10 @@ function createWorkspace() {
     switch (record.client) {
       case 'Parquet': {
         const uint8 = base64Bytes(record.data);
-        const asyncBuffer = await asyncBufferFrom({ file: new File([uint8], 'default'), byteLength: uint8.byteLength });
+        // 传底层的 ArrayBuffer：TypeScript 5.7 起 Uint8Array 带了缓冲区类型参数，直接传会被判为不能当 BlobPart。
+        // base64Bytes 新建的数组独占整个缓冲区，所以两者内容一致。
+        const file = new File([uint8.buffer as ArrayBuffer], 'default');
+        const asyncBuffer = await asyncBufferFrom({ file, byteLength: uint8.byteLength });
         const res = await parquetReadObjects({ file: asyncBuffer, compressors });
         const items = res.map((v) => {
           v.id = Number(v.id);

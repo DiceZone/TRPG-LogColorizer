@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.24.0",
+    "@codemirror/autocomplete": "^6.18.2",
     "@codemirror/commands": "^6.7.1",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",

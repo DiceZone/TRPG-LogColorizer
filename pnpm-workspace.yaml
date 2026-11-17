@@ -1,0 +1,11 @@
+# pnpm 的项目设置。pnpm 11 起这些设置只从这里读，.npmrc 里只留仓库地址。
+
+# 依赖的安装脚本须明确允许，否则新版 pnpm 会直接让安装失败（ERR_PNPM_IGNORED_BUILDS）。
+# pnpm 11 起用 allowBuilds；onlyBuiltDependencies 给 pnpm 10 用，两者内容保持一致。
+allowBuilds:
+  esbuild: true
+  vue-demi: true
+  '@parcel/watcher': false
+onlyBuiltDependencies:
+  - esbuild
+  - vue-demi
