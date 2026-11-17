@@ -65,20 +65,89 @@ onMounted(async () => {
 });
 
 // ─── 飞出与收回 ─────────────────────────────────────────────
+// 信纸是三折的：飞出时只看得到中间那一折，躺在透视空间里，边飞边放大、转正；
+// 飞到途中上折先翻开、下折再翻开，折痕最后淡去。收回时整段倒着播。
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** 从信封飞到屏幕中间：先是一张折起来的窄条，到了再展开成整张信纸。 */
+/** 打开的总时长；收回时按 CLOSE_RATE 倍速倒放。 */
+const DURATION = 1100;
+const CLOSE_RATE = 1.6;
+const FOLDED = 'inset(33.34% 0 33.34% 0 round 6px)';
+const TOP_OPEN = 'inset(0 0 33.34% 0 round 6px)';
+const ALL_OPEN = 'inset(0 0 0 0 round 0px)';
+
+const paper = ref<HTMLElement | null>(null);
+const flapTop = ref<HTMLElement | null>(null);
+const flapBottom = ref<HTMLElement | null>(null);
+const creases = ref<HTMLElement | null>(null);
+
+/** 从信封飞到屏幕前：起点躺平、倾斜、很小，终点正对着人。 */
 const flight = (): Keyframe[] => {
   const from = envelope.value!.getBoundingClientRect();
   const to = sheet.value!.getBoundingClientRect();
   const dx = from.left + from.width / 2 - (to.left + to.width / 2);
   const dy = from.top + from.height / 2 - (to.top + to.height / 2);
-  const s = Math.max(from.width / to.width, 0.04);
+  // 起点时只露出中间一折（高度的三分之一），让它和信封差不多大。
+  const s = Math.max(Math.min(from.width / to.width, (from.height * 3) / to.height), 0.04);
+  const p = 'perspective(1400px)';
   return [
-    { transform: `translate(${dx}px, ${dy}px) rotate(-14deg) scale(${s}, ${s * 0.7})`, opacity: 0.5 },
-    { transform: 'translate(0, 0) rotate(0deg) scale(1, 0.06)', opacity: 1, offset: 0.55 },
-    { transform: 'translate(0, 0) rotate(0deg) scale(1, 1)', opacity: 1 },
+    { transform: `${p} translate3d(${dx}px, ${dy}px, 0) rotateZ(-14deg) rotateX(62deg) scale(${s})`, opacity: 0.4 },
+    { transform: `${p} translate3d(${dx * 0.18}px, ${dy * 0.18}px, 0) rotateZ(-5deg) rotateX(38deg) scale(0.62)`, opacity: 1, offset: 0.42 },
+    { transform: `${p} translate3d(0, 0, 0) rotateZ(-1deg) rotateX(12deg) scale(0.9)`, offset: 0.72 },
+    { transform: `${p} translate3d(0, 0, 0) rotateZ(0deg) rotateX(0deg) scale(1)` },
   ];
+};
+
+/**
+ * 一折从叠着（±180°）翻到摊平（0°），翻过一半后淡出，露出底下的内容。
+ * lift：叠着时离纸面的距离，避免与纸面同一平面而闪烁；上折叠在最上面。
+ */
+const flapFrames = (from: number, lift: number): Keyframe[] => [
+  { transform: `translateZ(${lift}px) rotateX(${from}deg)`, opacity: 1, offset: 0 },
+  { transform: `translateZ(${lift}px) rotateX(${from}deg)`, opacity: 1, offset: 0.4 },
+  { transform: `translateZ(${lift / 2}px) rotateX(${from / 2}deg)`, opacity: 1, offset: 0.58 },
+  { transform: `translateZ(0px) rotateX(${from / 6}deg)`, opacity: 0.6, offset: 0.68 },
+  { transform: 'translateZ(0px) rotateX(0deg)', opacity: 0, offset: 0.74 },
+  { transform: 'translateZ(0px) rotateX(0deg)', opacity: 0, offset: 1 },
+];
+
+/** 播放整段动画；reverse 为收回。返回全部播完的 Promise。 */
+const play = (reverse: boolean) => {
+  const timing: KeyframeAnimationOptions = {
+    duration: DURATION,
+    direction: reverse ? 'reverse' : 'normal',
+    fill: reverse ? 'both' : 'backwards',
+  };
+  const all: Animation[] = [];
+  const run = (el: HTMLElement | null, frames: Keyframe[], options: KeyframeAnimationOptions = {}) => {
+    const animation = el?.animate(frames, { ...timing, ...options });
+    if (!animation) return;
+    if (reverse) animation.playbackRate = CLOSE_RATE;
+    all.push(animation);
+  };
+
+  run(sheet.value, flight(), { easing: 'cubic-bezier(0.3, 0.6, 0.25, 1)' });
+  // 下折跟着上折慢一拍翻开：把它的时间轴整体往后挪。
+  run(flapTop.value, flapFrames(-180, 2));
+  run(flapBottom.value, flapFrames(180, 1).map((frame) => ({
+    ...frame,
+    offset: frame.offset === 0 || frame.offset === 1 ? frame.offset : Math.min(0.99, (frame.offset as number) + 0.14),
+  })));
+  // 翻过一半时，那一折底下的内容才露出来。
+  run(paper.value, [
+    { clipPath: FOLDED, offset: 0 },
+    { clipPath: FOLDED, offset: 0.58 },
+    { clipPath: TOP_OPEN, offset: 0.585 },
+    { clipPath: TOP_OPEN, offset: 0.72 },
+    { clipPath: ALL_OPEN, offset: 0.725 },
+    { clipPath: ALL_OPEN, offset: 1 },
+  ], { easing: 'linear' });
+  run(creases.value, [
+    { opacity: 1, offset: 0 },
+    { opacity: 1, offset: 0.8 },
+    { opacity: 0, offset: 1 },
+  ], { easing: 'linear' });
+  return Promise.all(all.map((animation) => animation.finished)).catch(() => undefined);
 };
 
 let busy = false;
@@ -89,23 +158,25 @@ const show = async () => {
   open.value = true;
   markRead();
   await nextTick();
-  backdrop.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduced() ? 120 : 360, easing: 'ease-out' });
-  const animation = reduced()
-    ? sheet.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 })
-    : sheet.value?.animate(flight(), { duration: 680, easing: 'cubic-bezier(0.22, 0.8, 0.24, 1)' });
+  backdrop.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: reduced() ? 120 : 420, easing: 'ease-out' });
+  const done = reduced()
+    ? sheet.value?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150 }).finished
+    : play(false);
   closeButton.value?.focus({ preventScroll: true });
-  await animation?.finished.catch(() => undefined);
+  await done?.catch(() => undefined);
   busy = false;
 };
 
 const hide = async () => {
   if (!open.value || busy) return;
   busy = true;
-  backdrop.value?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduced() ? 120 : 320, easing: 'ease-in', fill: 'forwards' });
-  const animation = reduced()
-    ? sheet.value?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' })
-    : sheet.value?.animate(flight().reverse().map((frame) => (frame.offset ? { ...frame, offset: 1 - frame.offset } : frame)), { duration: 420, easing: 'cubic-bezier(0.5, 0, 0.75, 0.2)', fill: 'forwards' });
-  await animation?.finished.catch(() => undefined);
+  backdrop.value?.animate([{ opacity: 1 }, { opacity: 0 }], {
+    duration: reduced() ? 120 : DURATION / CLOSE_RATE, easing: 'ease-in', fill: 'forwards',
+  });
+  const done = reduced()
+    ? sheet.value?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' }).finished
+    : play(true);
+  await done?.catch(() => undefined);
   open.value = false;
   busy = false;
   envelope.value?.focus({ preventScroll: true });
@@ -132,15 +203,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
     <div v-if="open" class="lc-notice">
       <div ref="backdrop" class="lc-notice__backdrop" @click="hide"></div>
       <article ref="sheet" class="lc-notice__sheet" role="dialog" aria-modal="true" aria-labelledby="lc-notice-title">
-        <header class="lc-notice__head">
-          <h2 id="lc-notice-title" class="lc-notice__title">{{ title }}</h2>
-          <button ref="closeButton" class="lc-icon-btn lc-notice__close" type="button" :aria-label="theme.t('notice.close')"
-            :title="theme.t('notice.close')" @click="hide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-          </button>
-        </header>
-        <div class="lc-notice__body lc-rich" v-html="html"></div>
+        <div ref="paper" class="lc-notice__paper">
+          <header class="lc-notice__head">
+            <h2 id="lc-notice-title" class="lc-notice__title">{{ title }}</h2>
+            <button ref="closeButton" class="lc-icon-btn lc-notice__close" type="button" :aria-label="theme.t('notice.close')"
+              :title="theme.t('notice.close')" @click="hide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </header>
+          <div class="lc-notice__body lc-rich" v-html="html"></div>
+          <span ref="creases" class="lc-notice__creases" aria-hidden="true"></span>
+        </div>
+        <!-- 折起来时盖在中间那一折上的上下两折（信纸背面）。 -->
+        <span ref="flapTop" class="lc-notice__flap is-top" aria-hidden="true"></span>
+        <span ref="flapBottom" class="lc-notice__flap is-bottom" aria-hidden="true"></span>
       </article>
     </div>
   </Teleport>
