@@ -305,7 +305,20 @@ button {
 
 /* ── 区块 ───────────────────────────────────────────────── */
 
+.lc-intro__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.lc-intro__head .lc-live {
+  margin-left: auto;
+}
+
 .lc-intro__title {
+  min-width: 0;
   font-family: var(--lc-font-display);
   font-size: 28px;
   font-weight: 700;
@@ -1302,12 +1315,42 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.lc-live .lc-toggle {
+.lc-live[data-status="paused"] .lc-live__dot {
+  background: var(--lc-text-faint);
+}
+
+/* 暂停／恢复直播：断开或重新连上服务器的串流，与自动滚动无关。 */
+.lc-live__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   height: 22px;
   margin-right: -6px;
-  padding: 0 8px 0 6px;
+  padding: 0 9px 0 7px;
+  border: 1px solid var(--lc-border);
   border-radius: 999px;
+  background: var(--lc-surface);
+  color: var(--lc-text-muted);
+  font: inherit;
   font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.lc-live__control:hover {
+  border-color: var(--lc-border-strong);
+  color: var(--lc-text);
+}
+
+.lc-live__control[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--lc-primary) 40%, transparent);
+  background: var(--lc-primary-soft, color-mix(in srgb, var(--lc-primary) 10%, var(--lc-surface)));
+  color: var(--lc-primary);
+}
+
+.lc-live__control svg {
+  width: 12px;
+  height: 12px;
 }
 
 @keyframes lc-pulse {

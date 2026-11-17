@@ -16,7 +16,7 @@ export type LiveEvent =
   | { seq: number; op: 'edit'; rawMsgId: string | number; message: string }
   | { seq: number; op: 'delete'; rawMsgId: string | number };
 
-export type LiveStatus = 'connecting' | 'live' | 'retrying' | 'ended';
+export type LiveStatus = 'connecting' | 'live' | 'retrying' | 'paused' | 'ended';
 
 interface Handlers {
   /** 一批按序号排好、之前没给过的事件。 */
@@ -43,6 +43,11 @@ export class LiveSession {
     private handlers: Handlers,
   ) {
     this.lastSeq = lastSeq;
+  }
+
+  /** 已收到的最后一个事件序号；暂停后从这里接着收。 */
+  get seq(): number {
+    return this.lastSeq;
   }
 
   start() {

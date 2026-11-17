@@ -73,7 +73,9 @@ export const DEFAULT_STRINGS = {
   'live.on': '直播中',
   'live.retrying': '连接中断，重试中',
   'live.ended': '已完结',
-  'live.follow': '跟随最新',
+  'live.paused': '已暂停',
+  'live.pause': '暂停直播',
+  'live.resume': '恢复直播',
   'live.count': '{count} 条',
 
   'nav.source': '源代码',

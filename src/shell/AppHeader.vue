@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { config } from '~/config';
 import { useTheme } from '~/theme/useTheme';
-import { useWorkspace } from '~/workspace/useWorkspace';
-import LiveBadge from './LiveBadge.vue';
 
 const theme = useTheme();
-const workspace = useWorkspace();
 </script>
 
 <template>
@@ -16,8 +13,6 @@ const workspace = useWorkspace();
         <span class="lc-brand__name">{{ theme.t('brand.name') }}</span>
         <span class="lc-brand__version">v{{ config.version }}</span>
       </a>
-
-      <LiveBadge v-if="workspace.live.active" />
 
       <nav class="lc-header__actions">
         <a v-for="link in theme.links.value" :key="link.url" class="lc-header__link" :href="link.url"

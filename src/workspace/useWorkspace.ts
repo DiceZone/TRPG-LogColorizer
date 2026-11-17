@@ -613,15 +613,32 @@ function createWorkspace() {
 
   const startLive = (lastSeq: number) => {
     live.active = true;
-    session = new LiveSession(remote!.key, remote!.password, lastSeq, {
+    const current = new LiveSession(remote!.key, remote!.password, lastSeq, {
       onEvents: onLiveEvents,
       onStatus: (status) => {
+        // 暂停后旧连接里还没走完的回调不再算数。
+        if (session !== current) return;
         live.status = status;
         // 完结后服务器上的全文才是最终版本（撤回与修改都已套用）。
         if (status === 'ended') reloadRemote();
       },
     });
+    session = current;
     session.start();
+  };
+
+  /** 暂停直播：断开与服务器的串流，记住收到哪一条，恢复时从那里接着收。 */
+  let pausedSeq = 0;
+  const pauseLive = () => {
+    if (!session || live.status === 'ended') return;
+    pausedSeq = session.seq;
+    session.stop();
+    session = null;
+    live.status = 'paused';
+  };
+  const resumeLive = () => {
+    if (live.status !== 'paused' || !remote) return;
+    startLive(pausedSeq);
   };
 
   let started = false;
@@ -683,7 +700,7 @@ function createWorkspace() {
     clearText, doFlush, onChange, setHighlight, importFile,
     setView, showPreview,
     exportRecordRaw, exportRecordDOC, exportRecordTalkDOC, exportRecordDocx,
-    start,
+    start, pauseLive, resumeLive,
   };
 }
 
