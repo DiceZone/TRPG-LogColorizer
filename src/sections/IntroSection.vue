@@ -12,7 +12,9 @@ const workspace = useWorkspace();
   <section class="lc-intro" data-section="intro">
     <!-- 实时日志的状态放在标题同一行最右边，与下面日志区的右缘对齐；公告信封在它左边。 -->
     <div class="lc-intro__head">
-      <h1 class="lc-intro__title">{{ workspace.logName.value || theme.t('intro.title') }}</h1>
+      <h1 class="lc-intro__title" :title="workspace.logName.value || theme.t('intro.title')">
+        {{ workspace.logName.value || theme.t('intro.title') }}
+      </h1>
       <div class="lc-intro__aside">
         <NoticeEnvelope />
         <LiveBadge v-if="workspace.live.active" />

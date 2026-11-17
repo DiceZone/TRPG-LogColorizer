@@ -185,6 +185,8 @@ button {
 .lc-top {
   grid-column: 1 / -1;
   display: grid;
+  /* 不让不换行的标题把这一栏撑宽：标题放不下时截短成「…」。 */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--lc-gap);
   min-width: 0;
 }
@@ -225,7 +227,8 @@ button {
     top: var(--lc-header-height);
     bottom: 0;
     left: 0;
-    width: min(26rem, calc(100vw - 52px));
+    /* 右边留出页签（约 32px）再加一指宽（约 56px）的空白，方便点空白处收起。 */
+    width: min(26rem, calc(100vw - 88px));
     transform: translateX(-100%);
     transition: transform 0.22s ease;
   }
@@ -252,9 +255,10 @@ button {
     display: none;
   }
 
+  /* 页签在中线稍下，拇指够得着。 */
   .lc-drawer__tabs {
     position: absolute;
-    top: 22vh;
+    top: 55%;
     left: 100%;
     display: flex;
     flex-direction: column;
@@ -305,16 +309,18 @@ button {
 
 /* ── 区块 ───────────────────────────────────────────────── */
 
+/* 标题与直播状态永远在同一行：放不下时标题截短成「…」。 */
 .lc-intro__head {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
 }
 
 .lc-intro__aside {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -328,6 +334,7 @@ button {
 .lc-notice-env {
   position: absolute;
   z-index: 20;
+  /* 标题行顶端往上一个间距就是顶栏下缘，信封上半截藏在顶栏后面。 */
   top: calc(-1 * var(--lc-gap) - 12px);
   right: calc(12rem + 14px);
   width: 50px;
@@ -585,25 +592,23 @@ button {
   font-size: 1.1em;
 }
 
-/* 手机上不压在顶栏下面，跟标题排在同一行。 */
+/* 手机上同样压在顶栏下面；直播状态不显示条数，变窄了，信封跟着往右挪。 */
 @media (max-width: 640px) {
+  /* 手机上标题离顶栏更近：信封再往上藏一点，免得压到标题文字。 */
   .lc-notice-env {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: 40px;
-    height: 29px;
-    transform-origin: 50% 50%;
-  }
-
-  .lc-notice-env:hover,
-  .lc-notice-env:focus-visible {
-    transform: rotate(-7deg);
+    top: calc(-1 * var(--lc-gap) - 17px);
+    right: calc(10rem + 8px);
+    width: 44px;
+    height: 32px;
   }
 }
 
 .lc-intro__title {
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-family: var(--lc-font-display);
   font-size: 28px;
   font-weight: 700;
@@ -1789,10 +1794,11 @@ button {
 .lc-live__control {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  width: 22px;
   height: 22px;
   margin-right: -6px;
-  padding: 0 9px 0 7px;
+  padding: 0;
   border: 1px solid var(--lc-border);
   border-radius: 999px;
   background: var(--lc-surface);

@@ -28,9 +28,9 @@ const toggle = () => (paused.value ? resumeLive() : pauseLive());
     <span class="lc-live__label">{{ label }}</span>
     <span v-if="previewItems.length" class="lc-live__count">{{ theme.t('live.count', { count: previewItems.length }) }}</span>
     <button v-if="live.status !== 'ended'" class="lc-live__control" type="button" :aria-pressed="paused"
-      @click="toggle">
+      :title="paused ? theme.t('live.resume') : theme.t('live.pause')"
+      :aria-label="paused ? theme.t('live.resume') : theme.t('live.pause')" @click="toggle">
       <component :is="paused ? PlayFilledAlt : PauseFilled" aria-hidden="true" />
-      <span>{{ paused ? theme.t('live.resume') : theme.t('live.pause') }}</span>
     </button>
   </div>
 </template>
