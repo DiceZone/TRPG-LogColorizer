@@ -31,6 +31,10 @@ const expanded = computed({
   },
 });
 
+watch(() => props.open, (value) => {
+  if (value) expanded.value = true;
+});
+
 // 窄屏时从左缘页签打开抽屉里的这个区块，直接展开给人看。
 const drawer = inject<Ref<string | null> | null>('lc-drawer', null);
 if (drawer) {

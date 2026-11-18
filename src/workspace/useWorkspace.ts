@@ -31,6 +31,7 @@ import PreviewItem from '~/components/previews/preview-main-item.vue';
 import PreviewTableTR from '~/components/previews/preview-table-tr.vue';
 import { LiveEvent, LiveItem, LiveSession, LiveStatus } from '~/live/liveSession';
 import { useTheme } from '~/theme/useTheme';
+import { SAMPLE_LOG } from '~/workspace/sample';
 
 export type ViewMode = 'edit' | 'preview' | 'chat' | 'bbs' | 'bbspineapple' | 'trg';
 
@@ -57,6 +58,8 @@ function createWorkspace() {
 
   const loading = ref(false);
   const logName = ref('');
+  /** 当前是内置演示日志（地址里没有 key）。演示加载完后展开角色列表；正常日志不展开。 */
+  const isSample = ref(false);
   const view = ref<ViewMode>('edit');
   const previewItems = ref<LogItem[]>([]);
   const colors = ref<string[]>(randomColor({ count: 16 }));
@@ -739,6 +742,17 @@ function createWorkspace() {
       }, 1000);
     };
 
+    /** 与主页相同：把内置演示写进编辑器并解析。远程日志失败时也走这里。 */
+    const loadSample = async () => {
+      const text = store.editor.state.doc.toString() || SAMPLE_LOG;
+      store.editor.dispatch({
+        changes: { from: 0, to: store.editor.state.doc.length, insert: text },
+      });
+      enableHighlight();
+      await nextTick();
+      isSample.value = true;
+    };
+
     if (key && password) {
       remote = { key, password };
       loading.value = true;
@@ -758,14 +772,13 @@ function createWorkspace() {
       } catch (e) {
         console.log(e);
         notification.error({ content: '错误', meta: '加载日志失败，可能是序号或密码不正确', duration: 5000 });
+        remote = null;
+        await loadSample();
       } finally {
         loading.value = false;
       }
     } else {
-      store.editor.dispatch({
-        changes: { from: 0, to: store.editor.state.doc.length, insert: store.editor.state.doc.toString() },
-      });
-      enableHighlight();
+      await loadSample();
     }
 
     browserAlert();
@@ -776,7 +789,7 @@ function createWorkspace() {
   const locked = computed(() => view.value !== 'edit' && view.value !== 'chat');
 
   return {
-    store, loading, logName, view, previewItems, colors, isMobile, live, locked,
+    store, loading, logName, isSample, view, previewItems, colors, isMobile, live, locked,
     refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc,
     clearText, doFlush, onChange, setHighlight, importFile,
     setView, showPreview, askSaveDraft, rawMessageOf, editMessage, deleteMessage,

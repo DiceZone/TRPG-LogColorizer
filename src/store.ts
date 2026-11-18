@@ -7,7 +7,7 @@ import { random } from 'lodash-es';
 import * as twColors from 'tailwindcss/colors';
 
 import { config } from './config';
-import { SAMPLE_ROLES } from './workspace/sample';
+import { SAMPLE_LINKS, SAMPLE_ROLES } from './workspace/sample';
 
 const diceAPIBase = config.apiBase;
 const rkeyAPIBase = config.rkeyApiBase;
@@ -218,6 +218,18 @@ export const useStore = defineStore('main', {
           // 示例日志是文本格式，认不出骰娘与主持人，按示例里写好的补上。
           const sampleRole = SAMPLE_ROLES[v.IMUserId];
           if (sampleRole && v.role === '角色') v.role = sampleRole;
+          const linkTo = SAMPLE_LINKS[v.IMUserId];
+          if (linkTo) {
+            const target = this.pcList.find((pc) => pc.IMUserId === linkTo);
+            if (target) {
+              const from = packNameId(v);
+              const to = packNameId(target);
+              if (from !== to && !this.pcLinks[from]) {
+                this.pcLinks = { ...this.pcLinks, [from]: to };
+                v.color = target.color;
+              }
+            }
+          }
           if (v.role === '骰子') {
             // 骰娘排在主持人下面（没有主持人就排最前），其余角色按出场顺序。
             let at = 0;

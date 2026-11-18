@@ -13,6 +13,7 @@ import { customAvatars, loadImageFile, removeCustomAvatar, saveCustomAvatar } fr
 const theme = useTheme();
 const ws = useWorkspace();
 const store = ws.store;
+const isSample = ws.isSample;
 const message = useMessage();
 
 // ─── 自定义头像（只存在本地浏览器） ──────────────────────────
@@ -119,7 +120,7 @@ const count = computed(() => store.pcList.length);
 </script>
 
 <template>
-  <SectionCard id="characters" :title="theme.t('characters.title')" :desc="theme.t('characters.desc')" collapsible>
+  <SectionCard id="characters" :title="theme.t('characters.title')" :desc="theme.t('characters.desc')" collapsible :open="isSample">
     <template #badge>
       <span class="lc-tag">{{ count }}</span>
     </template>
