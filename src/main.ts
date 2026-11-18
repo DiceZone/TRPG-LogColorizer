@@ -11,6 +11,9 @@ import '@fontsource/jetbrains-mono/400.css';
 import '~/styles/tokens.css';
 import '~/styles/base.css';
 import './str.polyfill.ts';
+import { installLogImagePlaceholders } from '~/utils/logImage';
+
+installLogImagePlaceholders();
 
 const app = createApp(App);
 app.use(createPinia());

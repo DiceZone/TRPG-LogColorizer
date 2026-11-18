@@ -36,13 +36,23 @@ const escape = (text) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;')
 
 test('标准 CQ 图片链接只解一层 CQ 转义，HTML 预览不破坏查询参数', () => {
   const code = '[CQ:image,file=https://example.test/img?a=1&amp;b=2&#44;3&#91;4&#93;]';
+  const src = 'https://example.test/img?a=1&amp;b=2,3[4]';
   assert.equal(msgImageFormat(escape(code), { imageHide: false }, true),
-    '<img style="max-width: 300px" src="https://example.test/img?a=1&amp;b=2,3[4]" />');
+    `<img class="lc-log-img" style="max-width: 300px" src="${src}" alt="" data-src="${src}" />`);
   assert.equal(msgImageFormat(code, { imageHide: false }), code);
   const { cqImageHtml } = load('src/utils/cqImage.ts');
   assert.equal(cqImageHtml('javascript:alert(1)'), '[图片]');
+  const quoted = 'https://example.test/img&quot;onerror=&quot;alert(1)';
   assert.equal(cqImageHtml('https://example.test/img&quot;onerror=&quot;alert(1)'),
-    '<img style="max-width: 300px" src="https://example.test/img&quot;onerror=&quot;alert(1)" />');
+    `<img class="lc-log-img" style="max-width: 300px" src="${quoted}" alt="" data-src="${quoted}" />`);
+});
+
+test('赋给 img.src 的地址要把 &amp; 还原成 &', () => {
+  const { unescapeImageUrl } = load('src/utils/cqImage.ts');
+  const escaped = 'https://multimedia.nt.qq.com.cn/download?appid=1407&amp;fileid=EhQE37nQH15YLX36UNITic9CT8Bsthimpggg_wooq5Ch6bCQmAMyBHByb2RQgL2jAVoQKkOHjFPDt2xQd7mllbLynnoCtiKCAQJuag&amp;spec=0&amp;rkey=CAMSMIG2IMmTLy1p8-4dmoAVMVBQKboBDALT71et96y4fYhu2Wy5Pi1bIAvpKxiH-B7DbA';
+  const raw = 'https://multimedia.nt.qq.com.cn/download?appid=1407&fileid=EhQE37nQH15YLX36UNITic9CT8Bsthimpggg_wooq5Ch6bCQmAMyBHByb2RQgL2jAVoQKkOHjFPDt2xQd7mllbLynnoCtiKCAQJuag&spec=0&rkey=CAMSMIG2IMmTLy1p8-4dmoAVMVBQKboBDALT71et96y4fYhu2Wy5Pi1bIAvpKxiH-B7DbA';
+  assert.equal(unescapeImageUrl(escaped), raw);
+  assert.equal(unescapeImageUrl(raw), raw);
 });
 
 test('更新图片 rkey 时正确解析与保留标准 CQ 参数', () => {
@@ -63,33 +73,37 @@ test('rkey 带着 NapCat 的 &rkey= 前缀时去掉再写进链接', () => {
     '[图:https://multimedia.nt.qq.com.cn/download?appid=1406&fileid=abc&rkey=PRIVATE]');
 });
 
-test('过滤开关覆盖原文、纯文本导出和 HTML 转义后的各类预览', () => {
+test('屏蔽表情前缀覆盖原文、纯文本导出和 HTML 转义后的各类预览', () => {
   for (const encode of [(x) => x, escape]) {
     for (const html of [false, true]) {
       assert.equal(msgImageFormat(encode('前' + builtIn + '中' + custom + '后'),
-        { imageHide: true }, html), '前中后');
-      assert.equal(msgImageFormat(encode(builtIn + custom), { imageHide: true }, html), '');
+        { facePrefixHide: true }, html), '前中后');
+      assert.equal(msgImageFormat(encode(builtIn + custom), { facePrefixHide: true }, html), '');
     }
   }
 });
-test('关闭过滤不改表情正文', () => {
+test('关闭屏蔽表情前缀不改表情正文', () => {
   for (const encode of [(x) => x, escape]) {
     for (const html of [false, true]) {
       const text = encode('前' + builtIn + custom + '后');
-      assert.equal(msgImageFormat(text, { imageHide: false }, html), text);
+      assert.equal(msgImageFormat(text, { facePrefixHide: false }, html), text);
     }
   }
+});
+test('屏蔽表情前缀时图片本身仍保留', () => {
+  const image = '[图:https://example.test/sticker.gif]';
+  assert.equal(msgImageFormat(custom + image, { facePrefixHide: true, imageHide: false }), image);
 });
 test('不误删普通尖括号、提及、无效或未闭合标记', () => {
   for (const value of ['<调查员>', '<@123>', '<faceType=not-a-number>',
     '<faceType=6oops,faceId="0">', '<faceType=6,faceId="0"', '&lt;faceType=6']) {
-    assert.equal(msgImageFormat(value, { imageHide: true }), value);
+    assert.equal(msgImageFormat(value, { facePrefixHide: true }), value);
   }
 });
 test('与原有 CQ、mirai、图片过滤一起工作', () => {
   assert.equal(msgImageFormat('a[CQ:image,file=x]b' + custom +
     'c[CQ:face,id=424]d[mirai:image:foo]e[图:https://example.test/x]f',
-    { imageHide: true }), 'abcdef');
+    { imageHide: true, facePrefixHide: true }), 'abcdef');
 });
 test('编辑器染色只匹配当前位置的完整表情代码', () => {
   for (const marker of [builtIn, custom, escape(builtIn), escape(custom)]) {

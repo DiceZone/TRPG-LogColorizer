@@ -89,7 +89,7 @@ const richHtml = computed(() => {
   } else {
     raw = msgOffTopicFormat(raw, options, false);
   }
-  if (options.imageHide) raw = stripQQOfficialFaces(raw);
+  if (options.facePrefixHide) raw = stripQQOfficialFaces(raw);
   raw = msgCommandFormat(raw, options);
   raw = msgAtFormat(raw, store.pcList);
   // Discord 与 KOOK 的 @ 要在转义之后才认得出来。

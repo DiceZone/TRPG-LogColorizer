@@ -1644,6 +1644,37 @@ button {
   border-radius: 8px;
 }
 
+/* 日志图片：加载中用动画占位，失败换成失败图。尺寸先固定，成功后再随原图放大。 */
+img.lc-log-img {
+  display: inline-block;
+  vertical-align: top;
+  width: 64px;
+  height: 64px;
+  max-width: 64px !important;
+  object-fit: contain;
+  border-radius: 8px;
+  background: url('../assets/image-loading.png') center / contain no-repeat;
+}
+
+img.lc-log-img.is-ready {
+  width: auto;
+  height: auto;
+  max-width: min(300px, 100%) !important;
+  background: none;
+}
+
+img.lc-log-img.is-failed {
+  width: 64px;
+  height: 64px;
+  max-width: 64px !important;
+  background: none;
+}
+
+.lc-msg__bubble img.lc-log-img.is-ready {
+  display: block;
+  max-width: min(260px, 100%) !important;
+}
+
 /* Markdown 内容（聊天消息与公告）：段落之间留一点距离，标题、列表、引用都收得紧凑些。 */
 .lc-rich > :first-child {
   margin-top: 0;

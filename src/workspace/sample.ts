@@ -55,6 +55,7 @@ export const SAMPLE_LOG = `希亚(QQ:1707642) 2026/10/31 23:52:12
 
 林晚(Demo:1002) 2026/11/01 00:00:02
 ……这店不是只有一层吗？
+[图:https://multimedia.nt.qq.com.cn/download?appid=1407&fileid=EhQE37nQH15YLX36UNITic9CT8Bsthimpggg_wooq5Ch6bCQmAMyBHByb2RQgL2jAVoQKkOHjFPDt2xQd7mllbLynnoCtiKCAQJuag&spec=0&rkey=CAMSMIG2IMmTLy1p8-4dmoAVMVBQKboBDALT71et96y4fYhu2Wy5Pi1bIAvpKxiH-B7DbA]
 
 希亚(QQ:1707642) 2026/11/01 00:00:30
 你们抬起头。天花板上，有一道你们进门时没有注意到的活板门。

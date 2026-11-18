@@ -487,7 +487,7 @@ function createWorkspace() {
     const doc = el.ownerDocument || document;
 
     clone.querySelectorAll('img').forEach((img) => {
-      const src = img.getAttribute('src') || '';
+      const src = img.getAttribute('data-src') || img.getAttribute('src') || '';
       img.replaceWith(doc.createTextNode(src ? `[图:${src}]` : '[图:无可用链接]'));
     });
 

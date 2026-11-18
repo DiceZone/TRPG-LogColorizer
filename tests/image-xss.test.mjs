@@ -35,11 +35,11 @@ const { msgImageFormat } = load('src/utils/index.ts');
 const escapeHTML = (text) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const render = (message) => msgImageFormat(escapeHTML(message), {}, true);
 
-// 结果里的每个标签都只能有 style 与 src 两个属性，属性值里不能再有引号。
+// 结果里的每个标签只能带固定属性，地址只进 src 与 data-src，属性值里不能再有引号。
 function assertOnlySafeImages(html) {
   const tags = html.match(/<[^>]*>/g) || [];
   for (const tag of tags) {
-    assert.match(tag, /^<img style="max-width: 300px" src="[^"]*"(?: crossorigin="anonymous")? \/>$/, tag);
+    assert.match(tag, /^<img class="lc-log-img" style="max-width: 300px" src="[^"]*" alt="" data-src="[^"]*"(?: crossorigin="anonymous")? \/>$/, tag);
   }
   assert.doesNotMatch(html.replace(/<img [^>]*>/g, ''), /[<>]/, html);
 }
@@ -60,9 +60,12 @@ for (const payload of payloads) {
 }
 
 test('正常的图片码照常显示', () => {
+  const a = 'https://example.com/a.png?x=1&amp;y=2';
+  const b = 'https://example.com/b.png';
   assert.equal(
     render('[CQ:image,file=a.image,url=https://example.com/a.png?x=1&y=2]'),
-    '<img style="max-width: 300px" src="https://example.com/a.png?x=1&amp;y=2" />',
+    `<img class="lc-log-img" style="max-width: 300px" src="${a}" alt="" data-src="${a}" />`,
   );
-  assert.equal(render('[图:https://example.com/b.png]'), '<img style="max-width: 300px" src="https://example.com/b.png" />');
+  assert.equal(render('[图:https://example.com/b.png]'),
+    `<img class="lc-log-img" style="max-width: 300px" src="${b}" alt="" data-src="${b}" />`);
 });

@@ -54,6 +54,7 @@ export function generateLang(pcList: CharItem[], options: any = undefined): Exte
     const tag2 = Tag.define()
     const tag3 = Tag.define()
     const tagImg = Tag.define()
+    const tagFace = Tag.define()
 
     tokenMap[`speak-${theName}`] = tag
     highLights.push({ tag, color: i.color })
@@ -77,6 +78,13 @@ export function generateLang(pcList: CharItem[], options: any = undefined): Exte
       highLights.push({ tag: tagImg, color: '#999', 'text-decoration': 'line-through' })
     } else {
       highLights.push({ tag: tagImg, color: '#999' })
+    }
+
+    tokenMap[`face-${theName}`] = tagFace
+    if (options.facePrefixHide) {
+      highLights.push({ tag: tagFace, color: '#999', 'text-decoration': 'line-through' })
+    } else {
+      highLights.push({ tag: tagFace, color: '#999' })
     }
 
     pcMap[i.name] = i
@@ -142,7 +150,7 @@ export function generateLang(pcList: CharItem[], options: any = undefined): Exte
           m = stream.match(qqOfficialFaceAtStart) as RegExpMatchArray
           if (m) {
             state.text = ''
-            return `image-${state.name}`
+            return `face-${state.name}`
           }
 
           m = stream.match(/^\[mirai:(image|marketface):[^\]]+\]/g) as RegExpMatchArray

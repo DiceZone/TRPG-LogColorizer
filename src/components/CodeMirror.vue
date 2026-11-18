@@ -21,6 +21,7 @@ import { standardKeymap, insertTab, history, historyKeymap } from '@codemirror/c
 import { syntaxTree } from "@codemirror/language"
 import { materialDark, materialLight } from '@uiw/codemirror-theme-material';
 import { generateLang } from '~/utils/highlight';
+import { LOG_IMAGE_CLASS, unescapeImageUrl } from '~/utils/cqImage';
 import { useStore } from '~/store'
 import { useDark } from "@vueuse/core";
 import { basicSetup } from "codemirror";
@@ -85,8 +86,11 @@ function getExts(highlight = false) {
 }
 
 class ImagePreviewWidget extends WidgetType {
-  constructor(readonly url: string) {
+  readonly url: string
+
+  constructor(url: string) {
     super()
+    this.url = unescapeImageUrl(url)
   }
 
   eq(other: ImagePreviewWidget) {
@@ -98,7 +102,10 @@ class ImagePreviewWidget extends WidgetType {
     wrap.setAttribute("aria-hidden", "true")
     wrap.className = "cm-my-image" // edit-image
     let box = wrap.appendChild(document.createElement("img"))
+    box.className = LOG_IMAGE_CLASS
+    box.alt = ''
     box.src = this.url
+    box.setAttribute('data-src', this.url)
     // box.setAttribute('crossOrigin', 'anonymous')
     box.setAttribute('data-original', this.url)
     return wrap
@@ -130,7 +137,7 @@ function imagePreviews(view: EditorView): DecorationSet {
             widgets.push(deco.range(to))
           }
 
-          m = /\[(?:image|图):([^\]]+)?([^\]]+)\]/.exec(text) as RegExpExecArray
+          m = /\[(?:image|图):([^\]]+)\]/.exec(text) as RegExpExecArray
           if (m) {
             let deco = Decoration.widget({
               widget: new ImagePreviewWidget(m[1]),
@@ -273,6 +280,11 @@ onMounted(() => {
 
 .cm-my-image > img {
   max-width: 8rem;
+  max-height: 6rem;
+}
+
+.cm-my-image > img.lc-log-img.is-ready {
+  max-width: 8rem !important;
   max-height: 6rem;
 }
 </style>

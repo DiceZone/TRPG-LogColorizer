@@ -41,6 +41,7 @@ export const useStore = defineStore('main', {
       exportOptions: {
         commandHide: false,
         imageHide: false,
+        facePrefixHide: true,
         offTopicHide: false,
         mathHide: false,
         timeHide: false,
