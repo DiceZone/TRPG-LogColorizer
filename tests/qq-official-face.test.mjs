@@ -54,6 +54,15 @@ test('更新图片 rkey 时正确解析与保留标准 CQ 参数', () => {
     '[CQ:image,file=https://multimedia.nt.qq.com.cn/x?appid=1407&amp;foo=bar&amp;rkey=new-key]');
 });
 
+test('rkey 带着 NapCat 的 &rkey= 前缀时去掉再写进链接', () => {
+  const { applyQQImageRKeyReplacement } = load('src/utils/rkey.ts');
+  const message = '[图:https://multimedia.nt.qq.com.cn/download?appid=1406&fileid=abc&rkey=old]';
+  const result = JSON.parse(applyQQImageRKeyReplacement(JSON.stringify({ items: [{ message }] }),
+    { private_rkey: '&rkey=PRIVATE', group_rkey: '&rkey=GROUP' }));
+  assert.equal(result.items[0].message,
+    '[图:https://multimedia.nt.qq.com.cn/download?appid=1406&fileid=abc&rkey=PRIVATE]');
+});
+
 test('过滤开关覆盖原文、纯文本导出和 HTML 转义后的各类预览', () => {
   for (const encode of [(x) => x, escape]) {
     for (const html of [false, true]) {

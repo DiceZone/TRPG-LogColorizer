@@ -32,13 +32,15 @@ function sourceUrl(value: string | undefined): string {
 }
 
 const apiBase = trimSlash(runtime.apiBase || env.LOG_API_BASE || 'https://log-api.dice.zone/api/dice');
+const liveApiBase = trimSlash(runtime.liveApiBase || env.LOG_LIVE_API_BASE || apiBase.replace(/\/api\/dice$/, '/api/v2'));
 
 export const config = {
   /** 日志读取接口（…/api/dice）。 */
   apiBase,
   /** 实时日志接口（…/api/v2）。没有单独指定时由读取接口的地址推出。 */
-  liveApiBase: trimSlash(runtime.liveApiBase || env.LOG_LIVE_API_BASE || apiBase.replace(/\/api\/dice$/, '/api/v2')),
-  rkeyApiBase: trimSlash(runtime.rkeyApiBase || env.RKEY_API_BASE || 'https://dice-api.weizaima.com/api/v1/rkey'),
+  liveApiBase,
+  /** QQ 图片 rkey 接口：补到新版 QQ 图床的图片链接上，图片才打得开。默认由日志后端提供（…/api/v2/rkey）。 */
+  rkeyApiBase: trimSlash(runtime.rkeyApiBase || env.RKEY_API_BASE || `${liveApiBase}/rkey`),
   /** 站点使用的主题（themes/ 下的目录名），由部署者指定。 */
   theme: runtime.theme || env.LOG_THEME || 'default',
   /** 页眉 GitHub 图标指向的源码地址；为空时不显示。 */

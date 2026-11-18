@@ -13,9 +13,15 @@ function isNewMediaAppID(appid: string) {
   return appid === '1406' || appid === '1407'
 }
 
+// NapCat 给的 rkey 带着 &rkey= 前缀（方便直接拼到链接后面）；这里是作为参数值写进去的，要去掉
+function bareRKey(value?: string) {
+  const text = (value || '').trim()
+  return text.startsWith('&rkey=') ? text.slice('&rkey='.length) : text
+}
+
 function selectRKey(payload: RKeyPayload, appid: string) {
-  const privateKey = payload.private_rkey || ''
-  const groupKey = payload.group_rkey || ''
+  const privateKey = bareRKey(payload.private_rkey)
+  const groupKey = bareRKey(payload.group_rkey)
   if (appid === '1407') {
     return groupKey || privateKey
   }

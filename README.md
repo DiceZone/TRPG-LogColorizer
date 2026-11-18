@@ -45,7 +45,7 @@
 |---|---|
 | `LOG_API_BASE` | 日志后端的读取接口，默认 `https://log-api.dice.zone/api/dice` |
 | `LOG_LIVE_API_BASE` | 实时日志接口，默认由上一项推出（`…/api/v2`） |
-| `RKEY_API_BASE` | RKey 获取接口（还原部分平台的图片链接） |
+| `RKEY_API_BASE` | QQ 图片 rkey 接口（还原新版 QQ 图床的图片链接），默认由日志后端提供（`…/api/v2/rkey`） |
 | `LOG_THEME` | 站点使用的主题，填主题的目录名，默认 `default` |
 | `LOG_SOURCE_URL` | 页眉 GitHub 图标指向的源码地址，设为 `none` 不显示 |
 
