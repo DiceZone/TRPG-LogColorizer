@@ -49,10 +49,10 @@ export function installLogImagePlaceholders(root: ParentNode = document) {
 
   const observer = new MutationObserver((records) => {
     for (const record of records) {
-      for (const node of record.addedNodes) {
+      record.addedNodes.forEach((node) => {
         if (node instanceof HTMLImageElement) hydrate(node);
         else if (node instanceof Element) hydrateTree(node);
-      }
+      });
     }
   });
   observer.observe(root instanceof Document ? root.body ?? root.documentElement : root, {
