@@ -151,8 +151,15 @@ class TexReader {
         out += ' ';
       } else if (/\s/.test(c)) {
         this.i += 1;
-        // 数学模式里空格不算数；文字模式里连续空白只留一个。
-        if (textMode && !out.endsWith(' ')) out += ' ';
+        // 文字模式里连续空白只留一个。数学模式里空格本来不算数，但骰娘常拿公式给整句话
+        // 上色、换字体（\mathfrak{Hastur is watching you.}），两个词之间的空格要留着。
+        if (textMode) {
+          if (!out.endsWith(' ')) out += ' ';
+        } else {
+          let j = this.i;
+          while (j < s.length && /\s/.test(s[j])) j += 1;
+          if (WORD.test(out.slice(-1)) && WORD.test(s[j] ?? '') && !out.endsWith(' ')) out += ' ';
+        }
       } else {
         this.i += 1;
         out += c;
@@ -256,6 +263,44 @@ class TexReader {
     while (this.hasGroup()) out += this.arg(textMode);
     return out;
   }
+}
+
+/** 文字、数字（含中日韩文字）：两个这样的字符之间的空格算词与词之间的空格。 */
+const WORD = /[\p{L}\p{N}]/u;
+
+/**
+ * 给 KaTeX 用：数学模式会吞掉所有空格，把「词与词之间」的空格换成 \ （强制空格），
+ * 让 \mathfrak{Hastur is watching you.} 这种整句话的公式照样有空格。
+ * 运算符两边（D100 = 6）与命令名后面那个用来结束命令的空格（\Large x）不动。
+ */
+export function keepWordSpaces(tex: string): string {
+  let out = '';
+  for (let i = 0; i < tex.length; i += 1) {
+    const c = tex[i];
+    if (c === '\\') {
+      const name = /^\\([A-Za-z]+|[\s\S]?)/.exec(tex.slice(i))![0];
+      out += name;
+      i += name.length - 1;
+      // 命令名后面的空格是用来结束命令名的，原样留着
+      if (/^\\[A-Za-z]/.test(name)) {
+        while (i + 1 < tex.length && /\s/.test(tex[i + 1])) {
+          i += 1;
+          out += tex[i];
+        }
+      }
+      continue;
+    }
+    if (/\s/.test(c)) {
+      let j = i;
+      while (j < tex.length && /\s/.test(tex[j])) j += 1;
+      const between = WORD.test(out.slice(-1)) && WORD.test(tex[j] ?? '');
+      out += between ? '\\ ' : tex.slice(i, j);
+      i = j - 1;
+      continue;
+    }
+    out += c;
+  }
+  return out;
 }
 
 /** 把一段 LaTeX 公式换成纯文字：保留文字与数字，去掉颜色、字号、方框等样式。 */

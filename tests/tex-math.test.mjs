@@ -14,7 +14,7 @@ const source = fs.readFileSync(path.join(root, 'src/utils/texMath.ts'), 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: {
   module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
 } }).outputText;
-const { findMath, texToText, stripMath } = (() => {
+const { findMath, texToText, stripMath, keepWordSpaces } = (() => {
   const exports = {};
   vm.runInNewContext(code, { exports }, { filename: 'texMath.ts' });
   return exports;
@@ -52,6 +52,17 @@ test('common constructs', () => {
   assert.equal(texToText('\\underset{下}{上}'), '上 下');
   assert.equal(texToText('a\\\\b'), 'a\nb');
   assert.equal(stripMath('先 $$\\textbf{粗}$$ 后 \\(x^{2}\\) 完'), '先 粗 后 x2 完');
+});
+
+test('spaces between words survive in formulas styling a whole sentence', () => {
+  const sentence = String.raw`\textcolor{red}{\Large{\mathfrak{Hastur is watching you.}}}`;
+  assert.equal(stripMath(sentence), 'Hastur is watching you.');
+  assert.equal(keepWordSpaces(String.raw`\mathfrak{Hastur is watching you.}`), String.raw`\mathfrak{Hastur\ is\ watching\ you.}`);
+  // 运算符两边、命令名后面的空格不动
+  assert.equal(keepWordSpaces(String.raw`D100 = {\color{green} 6}/60`), String.raw`D100 = {\color{green} 6}/60`);
+  assert.equal(keepWordSpaces(String.raw`\Large x \times y`), String.raw`\Large x \times y`);
+  assert.equal(keepWordSpaces('希亚 hp9/9'), String.raw`希亚\ hp9/9`);
+  assert.equal(texToText(String.raw`\frac{1}{2} \times 3`), '1/2×3');
 });
 
 test('prose that only looks like math is left alone', () => {

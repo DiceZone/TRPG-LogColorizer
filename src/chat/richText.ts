@@ -4,7 +4,7 @@
 import MarkdownIt from 'markdown-it';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import { findMath } from '~/utils/texMath';
+import { findMath, keepWordSpaces } from '~/utils/texMath';
 
 const md = new MarkdownIt({ html: false, breaks: true, linkify: true });
 // 骰娘回复常用空格缩进排版，不当成代码块；
@@ -58,7 +58,7 @@ export function renderRich(raw: string, renderCode: (code: string) => string): s
     let out = '';
     let last = 0;
     for (const seg of segments) {
-      out += text.slice(last, seg.start) + hold(renderMath(seg.tex, seg.display), seg.display);
+      out += text.slice(last, seg.start) + hold(renderMath(keepWordSpaces(seg.tex), seg.display), seg.display);
       last = seg.end;
     }
     text = out + text.slice(last);
