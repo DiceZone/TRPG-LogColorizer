@@ -126,8 +126,12 @@ const count = computed(() => store.pcList.length);
     </template>
 
     <div class="lc-chars__toolbar">
-      <span class="lc-chars__hint">{{ theme.t('characters.refreshHint') }}</span>
-      <button class="lc-btn lc-btn--small" type="button" @click="ws.refreshColors()">
+      <button class="lc-btn lc-btn--small" type="button" :disabled="ws.sameIdGroups.value === 0"
+        :title="theme.t('characters.linkSameIdHint')" @click="ws.linkSameId()">
+        {{ theme.t('characters.linkSameId') }}
+        <span v-if="ws.sameIdGroups.value" class="lc-tag lc-tag--primary">{{ ws.sameIdGroups.value }}</span>
+      </button>
+      <button class="lc-btn lc-btn--small" type="button" :title="theme.t('characters.refreshHint')" @click="ws.refreshColors()">
         {{ theme.t('characters.refreshColors') }}
       </button>
     </div>

@@ -15,6 +15,8 @@ export const DEFAULT_STRINGS = {
   'characters.desc': '修改角色名、染色颜色、身份，允许将不同发言人关联为同一个角色。',
   'characters.empty': '导入或粘贴日志后，这里会显示识别到的角色',
   'characters.refreshColors': '刷新色板',
+  'characters.linkSameId': '关联同 ID',
+  'characters.linkSameIdHint': '同一账号用过多个名字时，将这些名字的发言全部关联到该账号排在最上面的角色',
   'characters.refreshHint': '为所有角色重新随机分配颜色',
   'characters.name': '名字',
   'characters.role': '类型',

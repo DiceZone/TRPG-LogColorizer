@@ -1035,10 +1035,15 @@ button {
 
 .lc-chars__toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 12px;
+}
+
+.lc-chars__toolbar .lc-tag {
+  margin-left: 4px;
 }
 
 .lc-chars__hint,

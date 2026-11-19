@@ -157,6 +157,47 @@ function createWorkspace() {
     showPreview();
   };
 
+  /**
+   * 账号相同、名字不同的角色（换了名字、或改过群名片）各有几组。
+   * 已经全部关联好的那组不算。
+   */
+  const sameIdGroups = computed(() => {
+    const byId = new Map<string, CharItem[]>();
+    for (const pc of store.pcList) {
+      if (!pc.IMUserId) continue;
+      byId.set(pc.IMUserId, [...(byId.get(pc.IMUserId) ?? []), pc]);
+    }
+    let groups = 0;
+    for (const list of byId.values()) {
+      if (list.length < 2) continue;
+      const finals = new Set(list.map((pc) => store.pcLinks[packNameId(pc)] ?? packNameId(pc)));
+      if (finals.size > 1) groups += 1;
+    }
+    return groups;
+  });
+
+  /**
+   * 一键关联同 ID：同一个账号用过的几个名字，全部关联到角色列表里排在最上面的那个
+   * （按出场顺序，通常就是它第一次发言用的名字）。人多的时候主账号就在眼前，不用往下翻。
+   */
+  const linkSameId = () => {
+    const first = new Map<string, CharItem>();
+    for (const pc of store.pcList) {
+      if (pc.IMUserId && !first.has(pc.IMUserId)) first.set(pc.IMUserId, pc);
+    }
+    let linked = 0;
+    for (const pc of [...store.pcList]) {
+      const target = pc.IMUserId ? first.get(pc.IMUserId) : undefined;
+      if (!target || target === pc) continue;
+      const final = store.pcLinks[packNameId(target)] ?? packNameId(target);
+      if ((store.pcLinks[packNameId(pc)] ?? packNameId(pc)) === final) continue;
+      linkPc(pc, target);
+      linked += 1;
+    }
+    if (linked) message.success(`已将 ${linked} 个角色关联到同一账号排在最上面的角色`, { duration: 2000 });
+    else message.info('没有需要关联的同 ID 角色', { duration: 2000 });
+  };
+
   /** 改名或删除角色后，关联里的键也要跟着改。 */
   const renameLinks = (oldKey: string, newKey: string | null) => {
     const links: Record<string, string> = {};
@@ -790,7 +831,7 @@ function createWorkspace() {
 
   return {
     store, loading, logName, isSample, view, previewItems, colors, isMobile, live, locked,
-    refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc,
+    refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc, sameIdGroups, linkSameId,
     clearText, doFlush, onChange, setHighlight, importFile,
     setView, showPreview, askSaveDraft, rawMessageOf, editMessage, deleteMessage,
     exportRecordRaw, exportRecordDOC, exportRecordTalkDOC, exportRecordDocx,
