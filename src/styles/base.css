@@ -1317,6 +1317,182 @@ button {
   background: var(--lc-primary);
 }
 
+/* ── 日志载入中 ─────────────────────────────────────────── */
+
+/* 盖在日志区上的骨架：像聊天记录正一条条冒出来。 */
+.lc-loading {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius);
+  background: var(--lc-surface);
+}
+
+/* 顶端一条细的不定进度条 */
+.lc-loading__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--lc-primary) 14%, transparent);
+}
+
+.lc-loading__bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--lc-primary), transparent);
+  animation: lc-loading-bar 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.lc-loading__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 18px;
+}
+
+.lc-loading__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: lc-loading-row 0.5s ease-out both;
+  animation-delay: var(--lc-loading-delay, 0ms);
+}
+
+.lc-loading__row.is-right {
+  flex-direction: row-reverse;
+}
+
+.lc-loading__avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.lc-loading__lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  max-width: 34rem;
+  padding-top: 3px;
+}
+
+.lc-loading__row.is-right .lc-loading__lines {
+  align-items: flex-end;
+}
+
+.lc-loading__lines span {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+}
+
+.lc-loading__avatar,
+.lc-loading__lines span {
+  background: linear-gradient(
+    100deg,
+    var(--lc-surface-sunken) 30%,
+    color-mix(in srgb, var(--lc-text) 7%, var(--lc-surface-sunken)) 50%,
+    var(--lc-surface-sunken) 70%
+  );
+  background-size: 300% 100%;
+  animation: lc-loading-shimmer 1.6s ease-in-out infinite;
+}
+
+/* 底部一枚小标签 */
+.lc-loading__label {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--lc-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lc-surface) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--lc-shadow-raised);
+  color: var(--lc-text-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.lc-loading__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--lc-primary);
+  animation: lc-loading-dot 1.2s ease-in-out infinite;
+}
+
+/* 载入完成时淡出 */
+.lc-loading-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.lc-loading-leave-to {
+  opacity: 0;
+}
+
+@keyframes lc-loading-bar {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes lc-loading-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes lc-loading-row {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lc-loading-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* 回声工坊上方的介绍。 */
 .lc-trg-intro {
   margin-bottom: 10px;
@@ -1866,6 +2042,11 @@ img.lc-log-img.is-failed {
 
 @media (prefers-reduced-motion: reduce) {
   .lc-live__dot,
+  .lc-loading__bar::before,
+  .lc-loading__row,
+  .lc-loading__avatar,
+  .lc-loading__lines span,
+  .lc-loading__dot,
   .lc-notice-env {
     animation: none !important;
   }

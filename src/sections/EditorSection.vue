@@ -10,6 +10,7 @@ import PreviewBbs from '~/components/previews/preview-bbs.vue';
 import PreviewBbsPineapple from '~/components/previews/preview-bbs-pineapple.vue';
 import PreviewTrg from '~/components/previews/preview-trg.vue';
 import ChatView from '~/chat/ChatView.vue';
+import LogLoading from '~/shell/LogLoading.vue';
 import ToggleButton from '~/shell/ToggleButton.vue';
 import { EditorView } from '@codemirror/view';
 import { useTheme } from '~/theme/useTheme';
@@ -216,33 +217,33 @@ onMounted(() => {
       <input ref="fileInput" type="file" accept=".txt,.log,.json,text/plain,application/json" hidden @change="onFile" />
     </div>
 
-    <n-spin :show="ws.loading.value">
-      <template #description>{{ theme.t('editor.loading') }}</template>
-
-      <div ref="logArea" class="lc-log-area" :style="logStyle">
-        <div v-show="ws.view.value === 'edit'" class="lc-editor-wrap">
-          <CodeMirror @change="ws.onChange" />
-        </div>
-
-        <div v-show="ws.view.value !== 'edit'" class="lc-preview-wrap">
-          <PreviewMain ref="previewMain" :is-show="ws.view.value === 'preview'" :preview-items="ws.previewItems.value" />
-          <ChatView ref="chatView" :is-show="ws.view.value === 'chat'" :preview-items="ws.previewItems.value" />
-          <PreviewBbs ref="previewBbs" :is-show="ws.view.value === 'bbs'" :preview-items="ws.previewItems.value" />
-          <PreviewBbsPineapple ref="previewPineapple" :is-show="ws.view.value === 'bbspineapple'" :preview-items="ws.previewItems.value" />
-          <PreviewTrg ref="previewTrg" :is-show="ws.view.value === 'trg'" :preview-items="ws.previewItems.value" />
-        </div>
-
-        <button class="lc-jump" type="button" :title="theme.t('editor.jumpLatest')" :aria-label="theme.t('editor.jumpLatest')"
-          @click="jumpToLatest">
-          <DownToBottom aria-hidden="true" />
-        </button>
+    <div ref="logArea" class="lc-log-area" :style="logStyle" :aria-busy="ws.loading.value">
+      <div v-show="ws.view.value === 'edit'" class="lc-editor-wrap">
+        <CodeMirror @change="ws.onChange" />
       </div>
-      <div class="lc-resize" role="separator" aria-orientation="horizontal" tabindex="0"
-        :title="theme.t('editor.resize')" :aria-label="theme.t('editor.resize')"
-        @pointerdown="onResizeDown" @pointermove="onResizeMove" @pointerup="onResizeUp" @pointercancel="onResizeUp"
-        @dblclick="resetHeight" @keydown="onResizeKey">
-        <span aria-hidden="true"></span>
+
+      <div v-show="ws.view.value !== 'edit'" class="lc-preview-wrap">
+        <PreviewMain ref="previewMain" :is-show="ws.view.value === 'preview'" :preview-items="ws.previewItems.value" />
+        <ChatView ref="chatView" :is-show="ws.view.value === 'chat'" :preview-items="ws.previewItems.value" />
+        <PreviewBbs ref="previewBbs" :is-show="ws.view.value === 'bbs'" :preview-items="ws.previewItems.value" />
+        <PreviewBbsPineapple ref="previewPineapple" :is-show="ws.view.value === 'bbspineapple'" :preview-items="ws.previewItems.value" />
+        <PreviewTrg ref="previewTrg" :is-show="ws.view.value === 'trg'" :preview-items="ws.previewItems.value" />
       </div>
-    </n-spin>
+
+      <button class="lc-jump" type="button" :title="theme.t('editor.jumpLatest')" :aria-label="theme.t('editor.jumpLatest')"
+        @click="jumpToLatest">
+        <DownToBottom aria-hidden="true" />
+      </button>
+
+      <Transition name="lc-loading">
+        <LogLoading v-if="ws.loading.value" />
+      </Transition>
+    </div>
+    <div class="lc-resize" role="separator" aria-orientation="horizontal" tabindex="0"
+      :title="theme.t('editor.resize')" :aria-label="theme.t('editor.resize')"
+      @pointerdown="onResizeDown" @pointermove="onResizeMove" @pointerup="onResizeUp" @pointercancel="onResizeUp"
+      @dblclick="resetHeight" @keydown="onResizeKey">
+      <span aria-hidden="true"></span>
+    </div>
   </SectionCard>
 </template>

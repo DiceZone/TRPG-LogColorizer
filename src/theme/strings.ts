@@ -68,7 +68,7 @@ export const DEFAULT_STRINGS = {
   'editor.bbs.colorNameHint': '用颜色名代替十六进制颜色码。颜色名有限，部分颜色会随机分配',
   'editor.trg.voice': '语音合成标记',
   'editor.importFile': '导入文件',
-  'editor.loading': '正在加载远程记录……',
+  'editor.loading': '正在加载日志',
 
   'export.title': '导出',
   'export.desc': '将日志导出为原始文本或带格式的文档',
