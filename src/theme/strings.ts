@@ -16,6 +16,8 @@ export const DEFAULT_STRINGS = {
   'characters.empty': '导入或粘贴日志后，这里会显示识别到的角色',
   'characters.refreshColors': '刷新色板',
   'characters.linkSameId': '关联同 ID',
+  'characters.linkSameIdOn': '已关联 {count} 个',
+  'characters.linkSameIdClearHint': '再按一次清除所有关联（包括手动关联的）',
   'characters.linkSameIdHint': '同一账号用过多个名字时，将这些名字的发言全部关联到该账号排在最上面的角色',
   'characters.refreshHint': '为所有角色重新随机分配颜色',
   'characters.name': '名字',

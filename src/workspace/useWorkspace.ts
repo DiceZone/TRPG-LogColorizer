@@ -180,22 +180,67 @@ function createWorkspace() {
    * 一键关联同 ID：同一个账号用过的几个名字，全部关联到角色列表里排在最上面的那个
    * （按出场顺序，通常就是它第一次发言用的名字）。人多的时候主账号就在眼前，不用往下翻。
    */
-  const linkSameId = () => {
+  const linkSameId = () => runLinkWork(() => {
     const first = new Map<string, CharItem>();
     for (const pc of store.pcList) {
       if (pc.IMUserId && !first.has(pc.IMUserId)) first.set(pc.IMUserId, pc);
     }
+    // 一次算完、一次写回：逐个关联的话，每关联一个就要把整份预览重算一遍，日志一长就卡好几秒。
+    const links = { ...store.pcLinks };
     let linked = 0;
-    for (const pc of [...store.pcList]) {
+    for (const pc of store.pcList) {
       const target = pc.IMUserId ? first.get(pc.IMUserId) : undefined;
       if (!target || target === pc) continue;
-      const final = store.pcLinks[packNameId(target)] ?? packNameId(target);
-      if ((store.pcLinks[packNameId(pc)] ?? packNameId(pc)) === final) continue;
-      linkPc(pc, target);
+      const self = packNameId(pc);
+      const to = packNameId(target);
+      const final = links[to] ?? to;
+      if (final === self || (links[self] ?? self) === final) continue;
+      links[self] = final;
+      // 原本关联到它的账号一并转过去，不留链条
+      for (const [key, value] of Object.entries(links)) if (value === self) links[key] = final;
       linked += 1;
     }
-    if (linked) message.success(`已将 ${linked} 个角色关联到同一账号排在最上面的角色`, { duration: 2000 });
-    else message.info('没有需要关联的同 ID 角色', { duration: 2000 });
+    if (!linked) {
+      message.info('没有需要关联的同 ID 角色', { duration: 2000 });
+      return;
+    }
+    store.pcLinks = links;
+    for (const pc of store.pcList) {
+      const owner = links[packNameId(pc)] ? store.pcMap.get(links[packNameId(pc)]) : undefined;
+      if (owner) pc.color = owner.color;
+    }
+    message.success(`已将 ${linked} 个角色关联到同一账号排在最上面的角色`, { duration: 2000 });
+  });
+
+  /** 清除所有关联（一键关联的与手动关联的都算），各角色换回自己的颜色。 */
+  const clearLinks = () => runLinkWork(() => {
+    const linkedKeys = new Set(Object.keys(store.pcLinks));
+    if (!linkedKeys.size) return;
+    store.pcLinks = {};
+    for (const pc of store.pcList) {
+      if (!linkedKeys.has(packNameId(pc))) continue;
+      const own = store.pcNameColorMap.get(pc.name);
+      if (own) pc.color = own;
+    }
+    message.success(`已清除 ${linkedKeys.size} 个关联`, { duration: 2000 });
+  });
+
+  /** 关联处理中：按钮显示转圈。先让转圈画出来再动手，做完等预览与编辑器跟着刷新完才收起。 */
+  const linkBusy = ref(false);
+  const linkedCount = computed(() => Object.keys(store.pcLinks).length);
+  const nextFrame = () => new Promise<void>((done) => requestAnimationFrame(() => setTimeout(done, 0)));
+  const runLinkWork = async (work: () => void) => {
+    if (linkBusy.value) return;
+    linkBusy.value = true;
+    try {
+      await nextTick();
+      await nextFrame();
+      work();
+      await nextTick();
+      await nextFrame();
+    } finally {
+      linkBusy.value = false;
+    }
   };
 
   /** 改名或删除角色后，关联里的键也要跟着改。 */
@@ -831,7 +876,8 @@ function createWorkspace() {
 
   return {
     store, loading, logName, isSample, view, previewItems, colors, isMobile, live, locked,
-    refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc, sameIdGroups, linkSameId,
+    refreshColors, colorChanged, deletePc, nameFocus, nameChanged, linkPc, unlinkPc,
+    sameIdGroups, linkSameId, clearLinks, linkBusy, linkedCount,
     clearText, doFlush, onChange, setHighlight, importFile,
     setView, showPreview, askSaveDraft, rawMessageOf, editMessage, deleteMessage,
     exportRecordRaw, exportRecordDOC, exportRecordTalkDOC, exportRecordDocx,

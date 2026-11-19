@@ -5,6 +5,7 @@ import { View, ViewOff } from '@vicons/carbon';
 import SectionCard from './SectionCard.vue';
 import CharAvatar from '~/shell/CharAvatar.vue';
 import AvatarCropper from '~/shell/AvatarCropper.vue';
+import ToggleButton from '~/shell/ToggleButton.vue';
 import { useTheme } from '~/theme/useTheme';
 import { useWorkspace } from '~/workspace/useWorkspace';
 import { CharItem, packNameId } from '~/logManager/types';
@@ -126,11 +127,12 @@ const count = computed(() => store.pcList.length);
     </template>
 
     <div class="lc-chars__toolbar">
-      <button class="lc-btn lc-btn--small" type="button" :disabled="ws.sameIdGroups.value === 0"
-        :title="theme.t('characters.linkSameIdHint')" @click="ws.linkSameId()">
-        {{ theme.t('characters.linkSameId') }}
-        <span v-if="ws.sameIdGroups.value" class="lc-tag lc-tag--primary">{{ ws.sameIdGroups.value }}</span>
-      </button>
+      <!-- 有关联时亮起，再按一次清除全部关联（手动关联的也一起清）；没有关联时按下即一键关联同 ID。 -->
+      <ToggleButton :model-value="ws.linkedCount.value > 0" :busy="ws.linkBusy.value"
+        :disabled="ws.linkedCount.value === 0 && ws.sameIdGroups.value === 0"
+        :label="ws.linkedCount.value > 0 ? theme.t('characters.linkSameIdOn', { count: ws.linkedCount.value }) : theme.t('characters.linkSameId')"
+        :title="ws.linkedCount.value > 0 ? theme.t('characters.linkSameIdClearHint') : theme.t('characters.linkSameIdHint')"
+        @update:model-value="(on: boolean) => (on ? ws.linkSameId() : ws.clearLinks())" />
       <button class="lc-btn lc-btn--small" type="button" :title="theme.t('characters.refreshHint')" @click="ws.refreshColors()">
         {{ theme.t('characters.refreshColors') }}
       </button>

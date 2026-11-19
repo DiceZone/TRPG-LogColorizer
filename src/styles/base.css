@@ -830,6 +830,34 @@ button {
   opacity: 1;
 }
 
+.lc-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lc-toggle.is-busy {
+  cursor: progress;
+  opacity: 1;
+}
+
+/* 处理中：勾的位置换成一个小转圈 */
+.lc-toggle__spinner {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin: 1px;
+  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: lc-spin 0.7s linear infinite;
+}
+
+@keyframes lc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .lc-empty {
   padding: 20px 8px;
   color: var(--lc-text-faint);
